@@ -1,3 +1,4 @@
+/* FIX */
 document.addEventListener('DOMContentLoaded',()=>{
 
   // Scroll Progress
