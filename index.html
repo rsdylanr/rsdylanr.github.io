@@ -1,31 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OTRLV Inspired</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OTRLV Ultra Maxed + Lottie</title>
 
   <!-- Google Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css" />
+  <!-- Lottie Player CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.0/lottie.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- SCROLL PROGRESS -->
+  <!-- Scroll progress -->
   <div id="scroll-progress"></div>
 
-  <!-- BACK TO TOP BUTTON -->
+  <!-- Back to top -->
   <button id="back-to-top">&#8679;</button>
 
-  <!-- NAV -->
+  <!-- Nav -->
   <nav>
     <div class="logo">
-      <a href="index.html">
-        <img src="https://github.com/rsdylanr/rsdylanr.github.io/blob/8bfd19912e4c40c37765e3edeb1682b24b213402/static-contet/images/main-assets/OTRLV-LOGO-IMAGE.png" alt="OTRLV Logo">
-      </a>
+      <div id="lottie-logo"></div>
     </div>
     <div class="nav-links">
       <a href="#about">About</a>
@@ -34,36 +35,51 @@
     </div>
   </nav>
 
-  <!-- HERO / ABOUT -->
+  <!-- Hero -->
   <section class="hero" id="about">
-    <h1>On The Record</h1>
-    <p>Professional legal video services designed for clarity, security, and court-ready delivery.</p>
-    <div class="hero-arrow">&#x2193;</div>
-    <canvas id="hero-particles"></canvas>
+    <div class="hero-content">
+      <h1 class="shimmer-text">On The Record</h1>
+      <p class="typing-text">Professional legal video services designed for clarity, security, and court-ready delivery.</p>
+    </div>
+    <canvas id="hero-canvas"></canvas>
   </section>
 
-  <!-- SERVICES -->
+  <!-- Services -->
   <section class="content" id="services">
-    <div class="card">
-      <div class="card-icon">🎥</div>
-      <h3>Remote Depositions</h3>
-      <p>High-quality virtual depositions recorded and delivered with precision.</p>
+    <div class="card flip-card">
+      <div class="card-inner">
+        <div class="card-front"><div class="card-icon">🎥</div><h3>Remote Depositions</h3></div>
+        <div class="card-back"><p>Recorded with precision and delivered fast.</p></div>
+      </div>
     </div>
-    <div class="card">
-      <div class="card-icon">🔒</div>
-      <h3>Secure Recording</h3>
-      <p>Encrypted handling and reliable storage for sensitive legal proceedings.</p>
+    <div class="card flip-card">
+      <div class="card-inner">
+        <div class="card-front"><div class="card-icon">🔒</div><h3>Secure Recording</h3></div>
+        <div class="card-back"><p>Encrypted, tamper-proof legal storage.</p></div>
+      </div>
     </div>
-    <div class="card">
-      <div class="card-icon">📦</div>
-      <h3>Professional Delivery</h3>
-      <p>Clean exports, timestamps, and formats ready for legal use.</p>
+    <div class="card flip-card">
+      <div class="card-inner">
+        <div class="card-front"><div class="card-icon">📦</div><h3>Professional Delivery</h3></div>
+        <div class="card-back"><p>Formats ready for court or appeal.</p></div>
+      </div>
     </div>
   </section>
 
-  <!-- FOOTER -->
-  <footer id="contact">
-    <p>© 2026 OTRLV Inspired — Educational Project</p>
+  <!-- Contact -->
+  <section class="contact-section" id="contact">
+    <h2>Let’s Get in Touch</h2>
+    <form class="contact-form">
+      <div class="input-group"><input type="text" required><label>Name</label></div>
+      <div class="input-group"><input type="email" required><label>Email</label></div>
+      <div class="input-group"><textarea required></textarea><label>Message</label></div>
+      <button type="submit">Send</button>
+    </form>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2026 OTRLV Ultra Maxed by Dylan</p>
   </footer>
 
   <script src="script.js"></script>
