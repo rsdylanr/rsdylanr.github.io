@@ -18,7 +18,7 @@ nav {
 }
 
 nav a {
-  color: whtie;
+  color: white;
   text-decoration: none;
   margin-left: 20px;
   opacity: 0.8;
@@ -28,7 +28,7 @@ nav a:hover {
   opacity: 1;
 }
 
-/*Hero*/
+/* HERO */
 .hero {
   height: 80vh;
   display: flex;
@@ -47,7 +47,7 @@ nav a:hover {
   opacity: 0.7;
 }
 
-/*content*/
+/* CONTENT */
 .content {
   display: flex;
   gap: 20px;
@@ -62,7 +62,7 @@ nav a:hover {
   text-align: center;
 }
 
-/* Footer */
+/* FOOTER */
 footer {
   padding: 20px;
   text-align: center;
