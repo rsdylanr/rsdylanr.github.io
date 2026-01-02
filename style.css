@@ -1,1 +1,70 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
 
+body {
+  background: #0f0f0f;
+  color: white;
+}
+
+/* NAV */
+nav {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 40px;
+}
+
+nav a {
+  color: whtie;
+  text-decoration: none;
+  margin-left: 20px;
+  opacity: 0.8;
+}
+
+nav a:hover {
+  opacity: 1;
+}
+
+/*Hero*/
+.hero {
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 40px;
+}
+
+.hero h1 {
+  font-size: 4rem;
+  margin-bottom: 10px;
+}
+
+.hero p {
+  font-size: 1.2rem;
+  opacity: 0.7;
+}
+
+/*content*/
+.content {
+  display: flex;
+  gap: 20px;
+  padding: 40px;
+}
+
+.card {
+  flex: 1;
+  background: #1a1a1a;
+  padding: 30px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* Footer */
+footer {
+  padding: 20px;
+  text-align: center;
+  opacity: 0.5;
+}
