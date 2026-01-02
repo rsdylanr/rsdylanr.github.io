@@ -6,7 +6,7 @@ body {font-family:'Inter',sans-serif;background:#0e0e0e;color:#fff;overflow-x:hi
 #back-to-top {position:fixed;bottom:24px;right:24px;background:#00bfff;border:none;color:#0e0e0e;padding:10px 12px;font-size:1.5rem;border-radius:8px;cursor:pointer;display:none;transition:0.3s;}
 #back-to-top:hover {background:#1e90ff;}
 
-nav {position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding:20px 48px;background:#0e0e0e;transition:.3s;}
+nav {position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding:20px 48px;background:#0e0e0e;transition:.3s;z-index:200;}
 nav.shrink {padding:10px 48px;background:#09090a;}
 .nav-links a {margin-left:22px;color:#fff;opacity:.8;position:relative;transition:0.2s;}
 .nav-links a::after {content:'';position:absolute;bottom:-4px;left:0;height:2px;width:0;background:#00bfff;transition:.3s;}
@@ -42,3 +42,9 @@ button[type="submit"] {background:#00bfff;color:#0e0e0e;border:none;padding:14px
 button[type="submit"]:hover {background:#1e90ff;}
 
 footer {text-align:center;padding:28px;opacity:.6;}
+
+@media(max-width:900px){
+  nav{padding:15px 24px;}
+  .hero{padding:0 24px;}
+  .content{padding:48px 24px;}
+}
