@@ -1,124 +1,408 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OTRLV Ultra Maxed</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>On The Record (OTR) | Legal Video & Trial Support</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React and ReactDOM CDNs -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel CDN to compile JSX in the browser for GitHub Pages -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+      html { scroll-behavior: smooth; }
+      .hero-gradient {
+        background: linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,41,59,0.9) 100%);
+      }
+    </style>
+  </head>
+  <body class="bg-slate-900 text-slate-100 font-sans antialiased">
+    <div id="root"></div>
 
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script type="text/babel">
+      // =========================================================================
+      // SITE CONFIGURATION OBJECT
+      // Edit this object to completely change all content, text, photos, and structure!
+      // =========================================================================
+      const SITE_CONFIG = {
+        companyName: "On The Record",
+        abbreviation: "OTR",
+        tagline: "Legal Video & Trial Support Services",
+        hero: {
+          title: "Precision Legal Video & Trial Support",
+          subtitle: "Providing high-turnaround, enterprise-grade litigation services across the Mid-Atlantic. Driven by security, precision, and technology.",
+          ctaPrimary: "Schedule a Service",
+          ctaSecondary: "Explore Capabilities",
+          // Change this URL to change the main background photo
+          backgroundImage: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=1920"
+        },
+        stats: [
+          { label: "Years of Excellence", value: "15+" },
+          { label: "Depositions Recorded", value: "10k+" },
+          { label: "Turnaround Time", value: "Same-Day" },
+          { label: "Coverage Footprint", value: "Global" }
+        ],
+        services: {
+          title: "Our Core Services",
+          subtitle: "Bespoke multimedia solutions meticulously engineered for court reporting agencies and law firms.",
+          items: [
+            {
+              icon: "video",
+              title: "Video Depositions",
+              description: "All-digital high-definition recording with multi-camera setups. Optional same-day digital media delivery."
+            },
+            {
+              icon: "refresh-cw",
+              title: "Transcript Synchronization",
+              description: "Seamless synchronization of video feeds with official transcripts, perfectly formatted for all legal software suites."
+            },
+            {
+              icon: "edit",
+              title: "Editing & Redactions",
+              description: "On-the-fly clip creation, page/line audio redactions, and precision media treatment for trial display."
+            },
+            {
+              icon: "gavel",
+              title: "Courtroom Playback",
+              description: "End-to-end hot-seat operation, evidence presentation systems, Elmo visualizers, and courtroom audio support."
+            }
+          ]
+        },
+        coverage: {
+          title: "Regional Coverage Footprint",
+          subtitle: "Deploying certified tech specialists dynamically across the major Mid-Atlantic hubs and hosting remote proceedings globally.",
+          states: ["Pennsylvania", "Delaware", "New Jersey", "Maryland", "New York", "Washington, D.C."]
+        },
+        trustedBy: {
+          title: "Who We've Worked With",
+          subtitle: "Trusted by top-tier law firms, corporate legal teams, and independent court reporting bureaus.",
+          clients: [
+            { name: "Apex Litigation Solutions", logoText: "ALS" },
+            { name: "Vanguard Court Reporting", logoText: "VCR" },
+            { name: "Beacon Legal Group", logoText: "BLG" },
+            { name: "Summit Law Partners", logoText: "SLP" },
+            { name: "Keystone Depositions", logoText: "KEY" }
+          ]
+        },
+        staff: {
+          title: "Meet Our Experts",
+          subtitle: "The highly specialized production, technical, and trial support engineers behind every successful assignment.",
+          directory: [
+            {
+              name: "Marck P. Reisbord",
+              role: "Founder & Chief Legal Videographer",
+              bio: "Specializing in high-profile deposition recordings and complex trial presentation setups for over two decades.",
+              // Change this URL to change Marck's profile photo
+              photo: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400&h=400"
+            },
+            {
+              name: "Jennifer Braverman Reisbord, RN",
+              role: "Operations & Medical Litigation Consultant",
+              bio: "Bringing clinical healthcare expertise to medical malpractice trial prep, timeline parsing, and operational oversight.",
+              // Change this URL to change Jennifer's profile photo
+              photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400&h=400"
+            }
+          ]
+        },
+        bookingForm: {
+          title: "Secure Intake & Scheduling Portal",
+          subtitle: "Submit case specifications directly to our scheduling desk. All submissions are encrypted and processed securely."
+        },
+        footer: {
+          tagline: "Securing the record, elevating the presentation. From discovery to verdict.",
+          address: "Center City, Philadelphia, PA",
+          phone: "(215) 555-0190",
+          email: "operations@otrlv.com"
+        }
+      };
 
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
+      // =========================================================================
+      // COMPONENT ARCHITECTURE
+      // =========================================================================
+      function App() {
+        const [formData, setFormData] = React.useState({
+          name: '', email: '', firm: '', serviceType: 'Video Deposition', date: '', details: ''
+        });
+        const [isSubmitted, setIsSubmitted] = React.useState(false);
 
-  <!-- Scroll Progress Bar -->
-  <div id="scroll-progress"></div>
+        const handleInputChange = (e) => {
+          const { name, value } = e.target;
+          setFormData(prev => ({ ...prev, [name]: value }));
+        };
 
-  <!-- Back to Top Button -->
-  <button id="back-to-top">&#8679;</button>
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          setIsSubmitted(true);
+          setTimeout(() => {
+            setIsSubmitted(false);
+            setFormData({ name: '', email: '', firm: '', serviceType: 'Video Deposition', date: '', details: '' });
+          }, 4000);
+        };
 
-  <!-- Navigation -->
-  <nav>
-    <div class="logo">
-      <a href="/">
-        <img src="static-content/images/main-assets/OTRLV-LOGO-IMAGE.png" alt="OTRLV Logo" style="height:50px;">
-      </a>
-    </div>
-    <div class="nav-links">
-      <a href="#about">About</a>
-      <a href="#services">Services</a>
-      <a href="#contact">Contact</a>
-    </div>
-  </nav>
+        // Custom micro-helper to map string names to Lucide layout representations without complex imports
+        const renderIcon = (name) => {
+          switch(name) {
+            case 'video': return <path d="m22 8-6 4 6 4V8Z" /><rect width="14" height="12" x="2" y="6" rx="2" ry="2" />;
+            case 'refresh-cw': return <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" /><path d="M16 16h5v5" />;
+            case 'edit': return <path d="M12 20h9" /><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />;
+            case 'gavel': return <path d="m14 13-5 5 2 2 5-5-2-2z" /><path d="m21 10-5-5-2 2 5 5 2-2z" /><path d="m21 10-5-5-2 2 5 5 2-2z" /><path d="M3 21h18" /><path d="M14 13 5 4" strokeLinecap="round" />;
+            default: return <circle cx="12" cy="12" r="10" />;
+          }
+        };
 
-  <!-- Hero Section -->
-  <section class="hero" id="about">
-    <div class="hero-content">
-      <h1 class="shimmer-text">On The Record</h1>
-      <p class="typing-text">Professional legal video services designed for clarity, security, and court-ready delivery.</p>
-    </div>
-    <canvas id="hero-canvas"></canvas>
-  </section>
+        return (
+          <div class="min-h-screen flex flex-col justify-between">
+            {/* Navigation Header */}
+            <header class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-6 py-4">
+              <div class="max-w-7xl mx-auto flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                  <div class="bg-blue-600 text-white font-black text-xl px-3 py-1 rounded tracking-tighter">
+                    {SITE_CONFIG.abbreviation}
+                  </div>
+                  <span class="text-xl font-bold tracking-tight text-white hidden sm:inline">
+                    {SITE_CONFIG.companyName}
+                  </span>
+                </div>
+                <nav class="hidden md:flex space-x-8 text-sm font-medium text-slate-400">
+                  <a href="#services" class="hover:text-blue-400 transition">Services</a>
+                  <a href="#coverage" class="hover:text-blue-400 transition">Coverage</a>
+                  <a href="#clients" class="hover:text-blue-400 transition">Clients</a>
+                  <a href="#team" class="hover:text-blue-400 transition">Our Team</a>
+                </nav>
+                <div>
+                  <a href="#book" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-5 py-2.5 rounded transition shadow-lg shadow-blue-600/20">
+                    {SITE_CONFIG.hero.ctaPrimary}
+                  </a>
+                </div>
+              </div>
+            </header>
 
-  <!-- Services Section -->
-  <section class="content" id="services">
-    <!-- Flip Cards -->
-    <div class="card flip-card">
-      <div class="card-inner">
-        <div class="card-front"><div class="card-icon">🎥</div><h3>Remote Depositions</h3></div>
-        <div class="card-back"><p>Our certified videographers capture remote depositions with precision. We deliver court-ready recordings in multiple formats, complete with timestamping and transcripts if required.</p></div>
-      </div>
-    </div>
+            {/* Hero Section */}
+            <section class="relative min-h-[85vh] flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: `url(${SITE_CONFIG.hero.backgroundImage})` }}>
+              <div class="absolute inset-0 hero-gradient"></div>
+              <div class="relative max-w-5xl mx-auto px-6 py-24 text-center z-10">
+                <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20 mb-6">
+                  <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> Premium Trial Support & Litigation Solutions
+                </span>
+                <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight leading-none mb-6">
+                  {SITE_CONFIG.hero.title}
+                </h1>
+                <p class="text-lg md:text-xl text-slate-300 max-w-3xl mx-auto mb-10 font-normal leading-relaxed">
+                  {SITE_CONFIG.hero.subtitle}
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                  <a href="#book" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-semibold px-8 py-4 rounded shadow-xl shadow-blue-600/20 transition text-center">
+                    {SITE_CONFIG.hero.ctaPrimary}
+                  </a>
+                  <a href="#services" class="w-full sm:w-auto bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold px-8 py-4 rounded backdrop-blur transition text-center">
+                    {SITE_CONFIG.hero.ctaSecondary}
+                  </a>
+                </div>
+              </div>
+            </section>
 
-    <div class="card flip-card">
-      <div class="card-inner">
-        <div class="card-front"><div class="card-icon">▶️</div><h3>Video Playback</h3></div>
-        <div class="card-back"><p>Advanced playback solutions for legal proceedings, enabling real-time video review, annotation, and courtroom integration.</p></div>
-      </div>
-    </div>
+            {/* Stats Band */}
+            <section class="bg-slate-950 border-y border-slate-800 py-12 px-6">
+              <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                {SITE_CONFIG.stats.map((stat, idx) => (
+                  <div key={idx}>
+                    <div class="text-3xl md:text-4xl font-extrabold text-blue-500 mb-1">{stat.value}</div>
+                    <div class="text-xs md:text-sm text-slate-400 font-medium uppercase tracking-wider">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+            </section>
 
-    <div class="card flip-card">
-      <div class="card-inner">
-        <div class="card-front"><div class="card-icon">⚖️</div><h3>Litigation Support</h3></div>
-        <div class="card-back"><p>Comprehensive support including exhibit prep, synchronization of video with transcripts, and court-ready editing.</p></div>
-      </div>
-    </div>
+            {/* Services Grid */}
+            <section id="services" class="py-24 px-6 max-w-7xl mx-auto w-full">
+              <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl mb-4">{SITE_CONFIG.services.title}</h2>
+                <p class="text-slate-400 max-w-2xl mx-auto">{SITE_CONFIG.services.subtitle}</p>
+              </div>
+              <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {SITE_CONFIG.services.items.map((srv, idx) => (
+                  <div key={idx} class="bg-slate-800/40 border border-slate-800 p-6 rounded-xl hover:border-blue-500/50 transition flex flex-col justify-between">
+                    <div>
+                      <div class="w-12 h-12 rounded-lg bg-blue-600/10 border border-blue-500/20 text-blue-500 flex items-center justify-center mb-5">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          {renderIcon(srv.icon)}
+                        </svg>
+                      </div>
+                      <h3 class="text-xl font-bold text-white mb-2">{srv.title}</h3>
+                      <p class="text-slate-400 text-sm leading-relaxed">{srv.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
 
-    <div class="card flip-card">
-      <div class="card-inner">
-        <div class="card-front"><div class="card-icon">⏱️</div><h3>Synchronized Video</h3></div>
-        <div class="card-back"><p>Synchro technology aligns video and transcript simultaneously, making review and courtroom presentation seamless.</p></div>
-      </div>
-    </div>
+            {/* Coverage Footprint Section */}
+            <section id="coverage" class="py-20 px-6 bg-slate-950 border-y border-slate-800">
+              <div class="max-w-7xl mx-auto lg:flex lg:items-center lg:justify-between gap-12">
+                <div class="lg:w-1/2 mb-10 lg:mb-0">
+                  <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl mb-4">{SITE_CONFIG.coverage.title}</h2>
+                  <p class="text-slate-400 mb-8 leading-relaxed">{SITE_CONFIG.coverage.subtitle}</p>
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {SITE_CONFIG.coverage.states.map((state, idx) => (
+                      <div key={idx} class="bg-slate-900 border border-slate-800 rounded-lg p-3 text-center font-semibold text-sm text-slate-300">
+                        {state}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                {/* Visual Representation Placeholder for Coverage */}
+                <div class="lg:w-1/2 bg-slate-900 border border-slate-800 p-8 rounded-2xl flex flex-col justify-between min-h-[300px]">
+                  <div>
+                    <span class="text-xs font-bold uppercase text-blue-500 tracking-wider">Operational Radius</span>
+                    <h3 class="text-xl font-bold text-white mt-1 mb-4">Mid-Atlantic Core Corridor</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                      Our legal videographers and hot-seat managers travel directly with customized hardware nodes to courtrooms, firm boardrooms, and remote deployment sites across the region.
+                    </p>
+                  </div>
+                  <div class="border-t border-slate-800 pt-4 mt-6 flex justify-between items-center text-xs text-slate-500">
+                    <span>Active Status: Deployable</span>
+                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> All Hubs Operational</span>
+                  </div>
+                </div>
+              </div>
+            </section>
 
-    <div class="card flip-card">
-      <div class="card-inner">
-        <div class="card-front"><div class="card-icon">✂️</div><h3>Editing</h3></div>
-        <div class="card-back"><p>Professional editing of deposition and litigation videos for clarity, timing, and presentation quality, ready for courts or clients.</p></div>
-      </div>
-    </div>
+            {/* "Who We've Worked With" Component */}
+            <section id="clients" class="py-20 px-6 max-w-7xl mx-auto w-full text-center">
+              <h2 class="text-2xl font-bold text-white tracking-tight mb-2">{SITE_CONFIG.trustedBy.title}</h2>
+              <p class="text-slate-400 text-sm mb-12">{SITE_CONFIG.trustedBy.subtitle}</p>
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+                {SITE_CONFIG.trustedBy.clients.map((client, idx) => (
+                  <div key={idx} class="bg-slate-800/20 border border-slate-800/80 rounded-xl p-6 flex flex-col items-center justify-center grayscale opacity-75 hover:grayscale-0 hover:opacity-100 transition duration-300">
+                    <div class="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center font-bold text-slate-400 text-sm mb-2 tracking-widest border border-slate-700">
+                      {client.logoText}
+                    </div>
+                    <span class="text-xs font-semibold text-slate-400 tracking-tight">{client.name}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
 
-    <div class="card flip-card">
-      <div class="card-inner">
-        <div class="card-front"><div class="card-icon">💻</div><h3>Conferencing</h3></div>
-        <div class="card-back"><p>Secure video conferencing for depositions, meetings, and hearings, with encrypted connections and recording options.</p></div>
-      </div>
-    </div>
-  </section>
+            {/* Staff Directory Section */}
+            <section id="team" class="py-24 px-6 bg-slate-950 border-t border-slate-800">
+              <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16">
+                  <h2 class="text-3xl font-bold tracking-tight text-white sm:text-4xl mb-4">{SITE_CONFIG.staff.title}</h2>
+                  <p class="text-slate-400 max-w-2xl mx-auto">{SITE_CONFIG.staff.subtitle}</p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                  {SITE_CONFIG.staff.directory.map((member, idx) => (
+                    <div key={idx} class="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col sm:flex-row items-center sm:items-start gap-6 hover:border-slate-700 transition">
+                      <img 
+                        src={member.photo} 
+                        alt={member.name} 
+                        class="w-24 h-24 rounded-full object-cover border-2 border-slate-800 shrink-0 bg-slate-800"
+                      />
+                      <div class="text-center sm:text-left">
+                        <h3 class="text-xl font-bold text-white">{member.name}</h3>
+                        <p class="text-blue-400 text-xs font-semibold uppercase tracking-wider mb-3">{member.role}</p>
+                        <p class="text-slate-400 text-sm leading-relaxed">{member.bio}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
 
-  <!-- Contact Section -->
-  <section class="contact-section" id="contact">
-  <h2>Contact Us</h2>
-  <p>Office: 1650 Market Street, 55th Floor, One Liberty Place, Philadelphia, PA</p>
-  <p>Phone: 1 (267) 238-9880</p>
-  <p>Email: <a href="mailto:info@otrlv.com">info@otrlv.com</a></p>
+            {/* Interactive Secure Intake Booking Section */}
+            <section id="book" class="py-24 px-6 max-w-3xl mx-auto w-full">
+              <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 md:p-10 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+                <div class="mb-8">
+                  <h2 class="text-2xl font-bold text-white tracking-tight mb-2">{SITE_CONFIG.bookingForm.title}</h2>
+                  <p class="text-sm text-slate-400">{SITE_CONFIG.bookingForm.subtitle}</p>
+                </div>
 
-  <form class="contact-form" action="https://formspree.io/f/xwvpbrqq" method="POST">
-    <div class="input-group">
-      <input type="text" name="name" required placeholder=" ">
-      <label>Name</label>
-    </div>
-    <div class="input-group">
-      <input type="email" name="email" required placeholder=" ">
-      <label>Email</label>
-    </div>
-    <div class="input-group">
-      <textarea name="message" required placeholder=" "></textarea>
-      <label>Message</label>
-    </div>
-    <button type="submit">Send</button>
-  </form>
-</section>
+                {isSubmitted ? (
+                  <div class="bg-green-500/10 border border-green-500/20 text-green-400 p-6 rounded-xl text-center">
+                    <h3 class="font-bold text-lg mb-1">Intake Submission Confirmed</h3>
+                    <p class="text-sm text-green-400/80">Your request has been routed to our Center City ops desk. A service coordinator will follow up shortly.</p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit} class="space-y-5">
+                    <div class="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Full Name</label>
+                        <input type="text" name="name" required value={formData.name} onChange={handleInputChange} class="w-full bg-slate-950 border border-slate-800 rounded p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="Counsel or Agent" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Email Address</label>
+                        <input type="email" name="email" required value={formData.email} onChange={handleInputChange} class="w-full bg-slate-950 border border-slate-800 rounded p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="name@firm.com" />
+                      </div>
+                    </div>
+                    <div class="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Law Firm / Agency</label>
+                        <input type="text" name="firm" required value={formData.firm} onChange={handleInputChange} class="w-full bg-slate-950 border border-slate-800 rounded p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="LLP or Corporate Entities" />
+                      </div>
+                      <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Requested Service Corridor</label>
+                        <select name="serviceType" value={formData.serviceType} onChange={handleInputChange} class="w-full bg-slate-950 border border-slate-800 rounded p-3 text-sm text-white focus:outline-none focus:border-blue-500">
+                          <option>Video Deposition</option>
+                          <option>Transcript Syncing</option>
+                          <option>Courtroom Trial Playback</option>
+                          <option>Custom Video Redaction</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Proceeding Date</label>
+                      <input type="date" name="date" required value={formData.date} onChange={handleInputChange} class="w-full bg-slate-950 border border-slate-800 rounded p-3 text-sm text-white focus:outline-none focus:border-blue-500" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Matter Details / Special Requirements</label>
+                      <textarea name="details" rows="3" value={formData.details} onChange={handleInputChange} class="w-full bg-slate-950 border border-slate-800 rounded p-3 text-sm text-white focus:outline-none focus:border-blue-500" placeholder="List tracking numbers, notice specifications, remote links, or courthouse locations..."></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded tracking-wide shadow-lg shadow-blue-600/10 transition">
+                      Transmit Secure Scheduling Request
+                    </button>
+                  </form>
+                )}
+              </div>
+            </section>
 
+            {/* Enterprise Legal Footer */}
+            <footer class="bg-slate-950 border-t border-slate-800 px-6 py-12 text-xs text-slate-500">
+              <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                <div>
+                  <div class="flex items-center space-x-2 text-white font-bold text-sm mb-2">
+                    <span class="bg-blue-600 text-white px-1.5 py-0.5 rounded text-xs">{SITE_CONFIG.abbreviation}</span>
+                    <span>{SITE_CONFIG.companyName}</span>
+                  </div>
+                  <p class="max-w-sm mb-2">{SITE_CONFIG.footer.tagline}</p>
+                  <p>&copy; {new Date().getFullYear()} {SITE_CONFIG.companyName} Legal Video Services. All rights reserved.</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-8 sm:gap-16 text-slate-400">
+                  <div>
+                    <h4 class="font-bold text-white uppercase tracking-wider mb-2 text-[10px]">Operations Desk</h4>
+                    <p>{SITE_CONFIG.footer.address}</p>
+                    <p>PH: {SITE_CONFIG.footer.phone}</p>
+                    <p>EM: {SITE_CONFIG.footer.email}</p>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-white uppercase tracking-wider mb-2 text-[10px]">Security Framework</h4>
+                    <p>AES-256 Cloud Encryption</p>
+                    <p>HIPAA & CJIS Compliant Archiving</p>
+                    <p>Secured Physical Chain of Custody</p>
+                  </div>
+                </div>
+              </div>
+            </footer>
+          </div>
+        );
+      }
 
-  <!-- Footer -->
-  <footer>
-    <p>© 2026 OTRLV Ultra Maxed by Dylan</p>
-  </footer>
-
-  <script src="script.js"></script>
-</body>
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
+  </body>
 </html>
