@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Toolbox — Free Online Utilities</title>
+<meta name="description" content="Fast, free, privacy-friendly online tools: word counter, JSON formatter, Base64, password generator, hashes, UUIDs and more. Everything runs in your browser.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧰</text></svg>">
+<script>
+  // Apply saved theme before first paint (avoids flash)
+  (function () {
+    var saved = localStorage.getItem('theme');
+    document.documentElement.dataset.theme = saved ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  })();
+</script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --border: #e4e7ec;
+    --text: #101828;
+    --muted: #667085;
+    --accent: #4f46e5;
+    --accent-fg: #ffffff;
+    --soft: #eef2ff;
+    --ok: #067647;
+    --err: #d92d20;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.10);
+  }
+  [data-theme="dark"] {
+    --bg: #0b0f14;
+    --surface: #131a22;
+    --border: #243040;
+    --text: #e6edf3;
+    --muted: #8b98a5;
+    --accent: #7c83ff;
+    --accent-fg: #0b0f14;
+    --soft: #1a2130;
+    --ok: #3fb950;
+    --err: #f85149;
+    --shadow: 0 1px 2px rgba(0,0,0,.45);
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    transition: background .2s ease, color .2s ease;
+  }
+
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  .muted { color: var(--muted); }
+
+  /* ---------- Header ---------- */
+  header {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .bar { display: flex; align-items: center; gap: 12px; height: 62px; }
+  .logo { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 17px; letter-spacing: -.01em; }
+  .logo span:first-child { font-size: 22px; }
+  .bar .spacer { flex: 1; }
+  .icon-btn {
+    font: inherit; font-size: 18px; line-height: 1;
+    width: 40px; height: 40px; display: grid; place-items: center;
+    border: 1px solid var(--border); border-radius: 11px;
+    background: var(--surface); color: var(--text); cursor: pointer;
+    transition: border-color .15s, transform .15s;
+  }
+  .icon-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+  /* ---------- Hero / home ---------- */
+  .hero { padding: 52px 0 26px; text-align: center; }
+  .hero h1 { margin: 0 0 10px; font-size: clamp(28px, 5vw, 42px); letter-spacing: -.03em; line-height: 1.15; }
+  .hero p { margin: 0 auto 26px; max-width: 540px; color: var(--muted); font-size: 17px; }
+  .search {
+    width: 100%; max-width: 460px; font: inherit; font-size: 15px;
+    padding: 13px 18px; border-radius: 999px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    box-shadow: var(--shadow);
+  }
+  .search:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+
+  .grid {
+    display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+    padding: 26px 0 70px;
+  }
+  .card {
+    display: block; padding: 18px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); box-shadow: var(--shadow);
+    transition: transform .15s ease, border-color .15s ease;
+  }
+  .card:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .card-icon { font-size: 24px; display: block; margin-bottom: 10px; }
+  .card h3 { margin: 0 0 5px; font-size: 16px; letter-spacing: -.01em; }
+  .card p { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+
+  /* ---------- Tool view ---------- */
+  #view { padding: 30px 0 80px; }
+  .back {
+    font: inherit; font-size: 14px; background: none; border: 0; padding: 6px 0;
+    color: var(--muted); cursor: pointer; margin-bottom: 12px;
+  }
+  .back:hover { color: var(--accent); }
+  #view-title { margin: 0 0 6px; font-size: 26px; letter-spacing: -.02em; }
+  #view-desc { margin: 0 0 20px; font-size: 15px; }
+  .panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow);
+  }
+
+  /* ---------- Form controls ---------- */
+  .ta, .in {
+    width: 100%; font: inherit; font-size: 14px; padding: 12px 13px;
+    border-radius: 12px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); resize: vertical;
+  }
+  .ta { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; line-height: 1.6; }
+  .ta:focus, .in:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .ta[readonly] { color: var(--muted); }
+
+  .lbl {
+    display: block; font-size: 12px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .05em; color: var(--muted); margin: 0 0 6px;
+  }
+  .lbl:not(:first-child) { margin-top: 16px; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center; }
+  .btn {
+    font: inherit; font-size: 14px; padding: 9px 14px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    cursor: pointer; transition: border-color .15s, color .15s, filter .15s;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  .btn.primary:hover { filter: brightness(1.1); color: var(--accent-fg); }
+  .btn.tiny { font-size: 12px; padding: 4px 9px; border-radius: 7px; }
+
+  .chk { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; cursor: pointer; }
+  .chk input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+  /* ---------- Misc components ---------- */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(108px, 1fr)); gap: 10px; margin: 16px 0 4px; }
+  .stat { background: var(--soft); border-radius: 11px; padding: 10px 13px; display: flex; flex-direction: column; }
+  .stat-k { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .stat-v { font-size: 20px; font-weight: 650; letter-spacing: -.02em; }
+
+  .msg { font-size: 13.5px; margin-top: 10px; min-height: 20px; }
+  .msg.err { color: var(--err); }
+  .msg.ok { color: var(--ok); }
+
+  .hashes { margin-top: 16px; display: grid; gap: 12px; }
+  .hash-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .hash-head span { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .hash-val {
+    display: block; font-size: 12.5px; word-break: break-all; padding: 10px 12px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  .swatches { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .swatch {
+    width: 62px; height: 62px; border-radius: 11px; border: 1px solid var(--border);
+    cursor: pointer; position: relative; transition: transform .12s;
+  }
+  .swatch:hover { transform: scale(1.06); }
+  .swatch small {
+    position: absolute; inset: auto 0 3px 0; text-align: center;
+    font-size: 9.5px; font-family: ui-monospace, monospace;
+    color: #fff; text-shadow: 0 0 3px rgba(0,0,0,.75);
+  }
+
+  .meter { height: 7px; border-radius: 99px; background: var(--soft); overflow: hidden; margin-top: 12px; }
+  .meter i { display: block; height: 100%; width: 0; border-radius: 99px; transition: width .25s, background .25s; }
+
+  .field { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .field .in { width: auto; flex: 1; min-width: 160px; }
+  input[type=range] { accent-color: var(--accent); width: 100%; }
+
+  /* ---------- Toast ---------- */
+  #toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 20px);
+    background: var(--text); color: var(--bg);
+    padding: 10px 18px; border-radius: 999px; font-size: 14px; font-weight: 500;
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 100;
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  footer {
+    border-top: 1px solid var(--border); padding: 26px 0 40px;
+    text-align: center; font-size: 13.5px; color: var(--muted);
+  }
+
+  @media (max-width: 520px) {
+    .hero { padding-top: 34px; }
+    .panel { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap bar">
+    <a class="logo" href="#/"><span>🧰</span><span>Toolbox</span></a>
+    <div class="spacer"></div>
+    <button class="icon-btn" id="theme" title="Toggle theme" aria-label="Toggle dark mode">🌙</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- Home -->
+  <section id="home">
+    <div class="hero">
+      <h1>Everyday tools, right in your browser</h1>
+      <p>Fast, free and private — nothing you type ever leaves your device.</p>
+      <input id="search" class="search" type="search" placeholder="Search tools…  (press /)" autocomplete="off">
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <!-- Tool view -->
+  <section id="view" hidden>
+    <button class="back" id="back">← All tools</button>
+    <h2 id="view-title"></h2>
+    <p id="view-desc" class="muted"></p>
+    <div class="panel" id="view-body"></div>
+  </section>
+</main>
+
+<footer class="wrap">
+  Built with vanilla HTML, CSS &amp; JavaScript · Hosted on GitHub Pages · 100% client-side
+</footer>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   Helpers
+   ============================================================ */
+const $ = (sel, root = document) => root.querySelector(sel);
+
+let toastTimer;
+function toast(message) {
+  const el = $("#toast");
+  el.textContent = message;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 1800);
+}
+
+async function copy(text, label = "Copied to clipboard") {
+  if (!text) return toast("Nothing to copy");
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(label);
+  } catch {
+    // Fallback for older browsers
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); toast(label); }
+    catch { toast("Copy failed"); }
+    ta.remove();
+  }
+}
+
+const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+const cap = (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+const pad2 = (n) => String(n).padStart(2, "0");
+
+/** Uniform random integer in [0, max) using rejection sampling. */
+function randInt(max) {
+  const buf = new Uint32Array(1);
+  const limit = Math.floor(0xffffffff / max) * max;
+  let x;
+  do { crypto.getRandomValues(buf); x = buf[0]; } while (x >= limit);
+  return x % max;
+}
+
+/* ============================================================
+   Tool 1 — Word counter
+   ============================================================ */
+function renderCounter(root) {
+  root.innerHTML = `
+    <textarea class="ta" id="ct-in" rows="9" placeholder="Type or paste your text…"></textarea>
+    <div class="stats" id="ct-stats"></div>
+    <div class="row">
+      <button class="btn" data-act="copy">Copy text</button>
+      <button class="btn" data-act="clear">Clear</button>
+    </div>`;
+
+  const ta = $("#ct-in", root);
+  const stats = $("#ct-stats", root);
+
+  const update = () => {
+    const v = ta.value;
+    const trimmed = v.trim();
+    const words = trimmed ? trimmed.split(/\s+/).length : 0;
+    const sentences = trimmed ? (trimmed.match(/[^.!?…]+[.!?…]+(\s|$)/g) || [trimmed]).length : 0;
+    const paragraphs = trimmed ? trimmed.split(/\n\s*\n/).filter((p) => p.trim()).length : 0;
+    const lines = v ? v.split("\n").length : 0;
+    const reading = words ? Math.max(1, Math.round(words / 200)) : 0;
+
+    const items = [
+      ["Words", words],
+      ["Characters", v.length],
+      ["No spaces", v.replace(/\s/g, "").length],
+      ["Sentences", sentences],
+      ["Paragraphs", paragraphs],
+      ["Lines", lines],
+      ["Reading time", reading + " min"],
+    ];
+    stats.innerHTML = items
+      .map(([k, val]) => `<div class="stat"><span class="stat-k">${k}</span><span class="stat-v">${val}</span></div>`)
+      .join("");
+  };
+
+  ta.addEventListener("input", update);
+  $('[data-act="copy"]', root).onclick = () => copy(ta.value, "Text copied");
+  $('[data-act="clear"]', root).onclick = () => { ta.value = ""; update(); ta.focus(); };
+  update();
+}
+
+/* ============================================================
+   Tool 2 — Case converter
+   ============================================================ */
+function splitWords(s) {
+  return s
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .replace(/[_\-]+/g, " ")
+    .split(/[^A-Za-z0-9]+/)
+    .filter(Boolean);
+}
+
+function renderCase(root) {
+  const ops = {
+    "UPPERCASE": (s) => s.toUpperCase(),
+    "lowercase": (s) => s.toLowerCase(),
+    "Title Case": (s) => s.replace(/\w\S*/g, (w) => cap(w)),
+    "Sentence case": (s) => s.toLowerCase().replace(/(^\s*[a-z]|[.!?]\s+[a-z])/g, (c) => c.toUpperCase()),
+    "camelCase": (s) => splitWords(s).map((w, i) => (i ? cap(w) : w.toLowerCase())).join(""),
+    "PascalCase": (s) => splitWords(s).map(cap).join(""),
+    "snake_case": (s) => splitWords(s).join("_").toLowerCase(),
+    "kebab-case": (s) => splitWords(s).join("-").toLowerCase(),
+    "CONSTANT_CASE": (s) => splitWords(s).join("_").toUpperCase(),
+  };
+
+  root.innerHTML = `
+    <label class="lbl" for="cc-in">Input</label>
+    <textarea class="ta" id="cc-in" rows="6" placeholder="Type or paste text…"></textarea>
+    <div class="row" id="cc-btns">
+      ${Object.keys(ops).map((k) => `<button class="btn" data-op="${k}">${k}</button>`).join("")}
+    </div>
+    <label class="lbl" for="cc-out">Result</label>
+    <textarea class="ta" id="cc-out" rows="6" readonly placeholder="Result appears here…"></textarea>
+    <div class="row"><button class="btn" data-act="copy">Copy result</button></div>`;
+
+  const inp = $("#cc-in", root);
+  const out = $("#cc-out", root);
+
+  $("#cc-btns", root).addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-op]");
+    if (!btn) return;
+    out.value = ops[btn.dataset.op](inp.value);
+  });
+
+  $('[data-act="copy"]', root).onclick = () => copy(out.value, "Result copied");
+}
+
+/* ============================================================
+   Tool 3 — Base64 encoder / decoder
+   ============================================================ */
+function b64Encode(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin);
+}
+
+function b64Decode(b64) {
+  const bin = atob(b64.trim());
+  const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+function renderBase64(root) {
+  root.innerHTML = `
+    <label class="lbl" for="b-in">Plain text</label>
+    <textarea class="ta" id="b-in" rows="6" placeholder="Hello world"></textarea>
+    <div class="row">
+      <button class="btn primary" data-act="enc">Encode ↓</button>
+      <button class="btn" data-act="dec">↑ Decode</button>
+    </div>
+    <label class="lbl" for="b-out">Base64</label>
+    <textarea class="ta" id="b-out" rows="6" placeholder="SGVsbG8gd29ybGQ="></textarea>
+    <div class="row">
+      <button class="btn" data-act="copy">Copy</button>
+      <button class="btn" data-act="swap">Swap fields</button>
+    </div>
+    <div class="msg" id="b-msg"></div>`;
+
+  const inp = $("#b-in", root);
+  const out = $("#b-out", root);
+  const msg = $("#b-msg", root);
+
+  const run = (dir) => {
+    msg.textContent = "";
+    msg.className = "msg";
+    try {
+      if (dir === "enc") {
+        out.value = b64Encode(inp.value);
+      } else {
+        out.value = b64Decode(inp.value);
+      }
+    } catch {
+      msg.textContent = "⚠ That doesn't look like valid Base64.";
+      msg.className = "msg err";
+    }
+  };
+
+  $('[data-act="enc"]', root).onclick = () => run("enc");
+  $('[data-act="dec"]', root).onclick = () => run("dec");
+  $('[data-act="copy"]', root).onclick = () => copy(out.value);
+  $('[data-act="swap"]', root).onclick = () => {
+    [inp.value, out.value] = [out.value, inp.value];
+    msg.textContent = "";
+  };
+}
+
+/* ============================================================
+   Tool 4 — URL encoder / decoder
+   ============================================================ */
+function renderUrl(root) {
+  root.innerHTML = `
+    <label class="lbl" for="u-in">Text or URL</label>
+    <textarea class="ta" id="u-in" rows="5" placeholder="https://example.com/?q=hello world&x=1"></textarea>
+    <div class="row">
+      <button class="btn primary" data-act="enc">Encode</button>
+      <button class="btn" data-act="dec">Decode</button>
+    </div>
+    <label class="lbl" for="u-out">Result</label>
+    <textarea class="ta" id="u-out" rows="5" readonly></textarea>
+    <div class="row"><button class="btn" data-act="copy">Copy</button></div>
+    <div class="msg" id="u-msg"></div>`;
+
+  const inp = $("#u-in", root);
+  const out = $("#u-out", root);
+  const msg = $("#u-msg", root);
+
+  const run = (dir) => {
+    msg.textContent = "";
+    msg.className = "msg";
+    try {
+      out.value = dir === "enc" ? encodeURIComponent(inp.value) : decodeURIComponent(inp.value);
+    } catch {
+      msg.textContent = "⚠ Invalid percent-encoding.";
+      msg.className = "msg err";
+    }
+  };
+
+  $('[data-act="enc"]', root).onclick = () => run("enc");
+  $('[data-act="dec"]', root).onclick = () => run("dec");
+  $('[data-act="copy"]', root).onclick = () => copy(out.value);
+}
+
+/* ============================================================
+   Tool 5 — JSON formatter
+   ============================================================ */
+function renderJson(root) {
+  root.innerHTML = `
+    <label class="lbl" for="j-in">JSON input</label>
+    <textarea class="ta" id="j-in" rows="9" placeholder='{"name":"Toolbox","tags":["fast","private"]}'></textarea>
+    <div class="row">
+      <button class="btn primary" data-act="format">Format</button>
+      <button class="btn" data-act="minify">Minify</button>
+      <button class="btn" data-act="copy">Copy output</button>
+      <button class="btn" data-act="clear">Clear</button>
+    </div>
+    <div class="msg" id="j-msg"></div>
+    <label class="lbl" for="j-out">Output</label>
+    <textarea class="ta" id="j-out" rows="11" readonly placeholder="Output…"></textarea>`;
+
+  const inp = $("#j-in", root);
+  const out = $("#j-out", root);
+  const msg = $("#j-msg", root);
+
+  const run = (mode) => {
+    msg.textContent = "";
+    msg.className = "msg";
+    try {
+      const value = JSON.parse(inp.value);
+      out.value = mode === "minify" ? JSON.stringify(value) : JSON.stringify(value, null, 2);
+      const size = new Blob([out.value]).size;
+      msg.textContent = `✓ Valid JSON · ${size.toLocaleString()} bytes`;
+      msg.className = "msg ok";
+    } catch (err) {
+      out.value = "";
+      let text = "⚠ " + err.message;
+      const m = /position (\d+)/.exec(err.message);
+      if (m) {
+        const pos = Number(m[1]);
+        const before = inp.value.slice(0, pos);
+        const line = before.split("\n").length;
+        const col = pos - before.lastIndexOf("\n");
+        text += ` (line ${line}, column ${col})`;
+      }
+      msg.textContent = text;
+      msg.className = "msg err";
+    }
+  };
+
+  $('[data-act="format"]', root).onclick = () => run("format");
+  $('[data-act="minify"]', root).onclick = () => run("minify");
+  $('[data-act="copy"]', root).onclick = () => copy(out.value, "JSON copied");
+  $('[data-act="clear"]', root).onclick = () => {
+    inp.value = ""; out.value = ""; msg.textContent = ""; inp.focus();
+  };
+}
+
+/* ============================================================
+   Tool 6 — Color converter
+   ============================================================ */
+function hexToRgb(hex) {
+  let h = hex.replace("#", "").trim();
+  if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+  if (!/^[0-9a-f]{6}$/i.test(h)) return null;
+  const n = parseInt(h, 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+const rgbToHex = ({ r, g, b }) =>
+  "#" + [r, g, b].map((v) => Math.round(v).toString(16).padStart(2, "0")).join("");
+
+function rgbToHsl({ r, g, b }) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  let h = 0, s = 0;
+  if (d) {
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  return { h: Math.round(h), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+
+const mix = (a, b, t) => ({
+  r: a.r + (b.r - a.r) * t,
+  g: a.g + (b.g - a.g) * t,
+  b: a.b + (b.b - a.b) * t,
+});
+
+function renderColor(root) {
+  root.innerHTML = `
+    <div class="field">
+      <input type="color" id="co-pick" value="#4f46e5" style="width:64px;height:48px;border:1px solid var(--border);border-radius:11px;background:none;cursor:pointer">
+      <input class="in" id="co-hex" value="#4f46e5" spellcheck="false" aria-label="Hex color">
+    </div>
+    <div class="stats" id="co-stats"></div>
+    <div class="row"><button class="btn" data-act="copyall">Copy all values</button></div>
+    <label class="lbl">Tints &amp; shades (click to use)</label>
+    <div class="swatches" id="co-sw"></div>`;
+
+  const pick = $("#co-pick", root);
+  const hexIn = $("#co-hex", root);
+  const stats = $("#co-stats", root);
+  const sw = $("#co-sw", root);
+
+  const update = (hex) => {
+    const rgb = hexToRgb(hex);
+    if (!rgb) return;
+    const hsl = rgbToHsl(rgb);
+    const hexNorm = rgbToHex(rgb);
+
+    pick.value = hexNorm;
+    hexIn.value = hexNorm;
+
+    const rows = [
+      ["HEX", hexNorm],
+      ["RGB", `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`],
+      ["HSL", `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`],
+      ["CSS var", `--color: ${hexNorm};`],
+    ];
+    stats.innerHTML = rows
+      .map(([k, v]) => `<div class="stat"><span class="stat-k">${k}</span><span class="stat-v" style="font-size:14px;word-break:break-all">${v}</span></div>`)
+      .join("");
+
+    const white = { r: 255, g: 255, b: 255 };
+    const black = { r: 0, g: 0, b: 0 };
+    const shades = [
+      mix(rgb, white, 0.8), mix(rgb, white, 0.6), mix(rgb, white, 0.4),
+      rgb,
+      mix(rgb, black, 0.25), mix(rgb, black, 0.5), mix(rgb, black, 0.75),
+    ];
+    sw.innerHTML = shades
+      .map((c) => {
+        const h = rgbToHex(c);
+        return `<button class="swatch" data-hex="${h}" style="background:${h}" title="${h}"><small>${h}</small></button>`;
+      })
+      .join("");
+  };
+
+  pick.addEventListener("input", () => update(pick.value));
+  hexIn.addEventListener("input", () => update(hexIn.value));
+  sw.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-hex]");
+    if (b) update(b.dataset.hex);
+  });
+  $('[data-act="copyall"]', root).onclick = () => {
+    const text = [...stats.querySelectorAll(".stat")]
+      .map((s) => `${s.querySelector(".stat-k").textContent}: ${s.querySelector(".stat-v").textContent}`)
+      .join("\n");
+    copy(text, "Color values copied");
+  };
+
+  update("#4f46e5");
+}
+
+/* ============================================================
+   Tool 7 — Password generator
+   ============================================================ */
+function renderPassword(root) {
+  const sets = {
+    lower: "abcdefghijklmnopqrstuvwxyz",
+    upper: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    digits: "0123456789",
+    symbols: "!@#$%^&*()-_=+[]{};:,.?/",
+  };
+
+  root.innerHTML = `
+    <label class="lbl" for="pw-out">Generated password</label>
+    <div class="field">
+      <input class="in" id="pw-out" readonly style="font-family:ui-monospace,monospace">
+      <button class="btn primary" data-act="gen">Generate</button>
+      <button class="btn" data-act="copy">Copy</button>
+    </div>
+    <div class="meter"><i id="pw-bar"></i></div>
+    <div class="msg" id="pw-msg"></div>
+
+    <label class="lbl">Length: <strong id="pw-lenval">20</strong></label>
+    <input type="range" id="pw-len" min="6" max="64" value="20">
+
+    <label class="lbl">Character sets</label>
+    <div class="row">
+      <label class="chk"><input type="checkbox" data-set="lower" checked> lowercase</label>
+      <label class="chk"><input type="checkbox" data-set="upper" checked> UPPERCASE</label>
+      <label class="chk"><input type="checkbox" data-set="digits" checked> digits</label>
+      <label class="chk"><input type="checkbox" data-set="symbols" checked> symbols</label>
+      <label class="chk"><input type="checkbox" id="pw-amb"> exclude look-alikes</label>
+    </div>`;
+
+  const out = $("#pw-out", root);
+  const bar = $("#pw-bar", root);
+  const msg = $("#pw-msg", root);
+  const len = $("#pw-len", root);
+  const lenVal = $("#pw-lenval", root);
+
+  const build = () => {
+    const ambiguous = "Il1O0o";
+    let pool = "";
+    root.querySelectorAll("[data-set]").forEach((cb) => {
+      if (cb.checked) {
+        let chars = sets[cb.dataset.set];
+        if ($("#pw-amb", root).checked) {
+          chars = [...chars].filter((c) => !ambiguous.includes(c)).join("");
+        }
+        pool += chars;
+      }
+    });
+    return pool;
+  };
+
+  const generate = () => {
+    const pool = build();
+    const n = Number(len.value);
+    if (!pool) {
+      out.value = "";
+      msg.textContent = "⚠ Select at least one character set.";
+      msg.className = "msg err";
+      bar.style.width = "0";
+      return;
+    }
+    msg.textContent = "";
+    msg.className = "msg";
+
+    let pw = "";
+    for (let i = 0; i < n; i++) pw += pool[randInt(pool.length)];
+    out.value = pw;
+
+    const bits = Math.round(n * Math.log2(pool.length));
+    let pct, color, label;
+    if (bits < 45) { pct = 30; color = "#d92d20"; label = "Weak"; }
+    else if (bits < 70) { pct = 55; color = "#f79009"; label = "Fair"; }
+    else if (bits < 100) { pct = 78; color = "#12b76a"; label = "Strong"; }
+    else { pct = 100; color = "#067647"; label = "Very strong"; }
+
+    bar.style.width = pct + "%";
+    bar.style.background = color;
+    msg.textContent = `${label} · ~${bits} bits of entropy`;
+    msg.className = "msg ok";
+  };
+
+  len.addEventListener("input", () => { lenVal.textContent = len.value; generate(); });
+  root.querySelectorAll("[data-set], #pw-amb").forEach((el) => el.addEventListener("change", generate));
+  $('[data-act="gen"]', root).onclick = generate;
+  $('[data-act="copy"]', root).onclick = () => copy(out.value, "Password copied");
+
+  generate();
+}
+
+/* ============================================================
+   Tool 8 — Hash generator
+   ============================================================ */
+async function sha(algo, text) {
+  const buf = await crypto.subtle.digest(algo, new TextEncoder().encode(text));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function renderHash(root) {
+  const algos = ["SHA-1", "SHA-256", "SHA-384", "SHA-512"];
+  root.innerHTML = `
+    <label class="lbl" for="h-in">Text to hash</label>
+    <textarea class="ta" id="h-in" rows="5" placeholder="Type anything…"></textarea>
+    <div class="hashes" id="h-out"></div>`;
+
+  const inp = $("#h-in", root);
+  const out = $("#h-out", root);
+
+  const supported = !!(window.crypto && crypto.subtle);
+
+  const paint = () => {
+    out.innerHTML = algos
+      .map(
+        (a) => `
+      <div class="hash-row">
+        <div class="hash-head">
+          <span>${a}</span>
+          <button class="btn tiny" data-copy="${a}">Copy</button>
+        </div>
+        <code class="hash-val" id="hv-${a}">—</code>
+      </div>`
+      )
+      .join("");
+  };
+
+  paint();
+
+  const run = async () => {
+    const text = inp.value;
+    if (!supported) {
+      out.innerHTML = '<p class="msg err">⚠ Web Crypto is unavailable. Serve this page over HTTPS.</p>';
+      return;
+    }
+    if (!text) {
+      algos.forEach((a) => {
+        const el = $("#hv-" + a, root);
+        if (el) el.textContent = "—";
+      });
+      return;
+    }
+    for (const a of algos) {
+      const hex = await sha(a, text);
+      const el = $("#hv-" + a, root);
+      if (el) el.textContent = hex;
+    }
+  };
+
+  let timer;
+  inp.addEventListener("input", () => {
+    clearTimeout(timer);
+    timer = setTimeout(run, 180);
+  });
+
+  out.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-copy]");
+    if (!btn) return;
+    const el = $("#hv-" + btn.dataset.copy, root);
+    if (el && el.textContent !== "—") copy(el.textContent, btn.dataset.copy + " copied");
+  });
+}
+
+/* ============================================================
+   Tool 9 — Timestamp converter
+   ============================================================ */
+function renderTimestamp(root) {
+  root.innerHTML = `
+    <label class="lbl" for="ts-unix">Unix timestamp (seconds)</label>
+    <div class="field">
+      <input class="in" id="ts-unix" inputmode="numeric" spellcheck="false">
+      <button class="btn primary" data-act="now">Now</button>
+    </div>
+
+    <label class="lbl" for="ts-date">Local date &amp; time</label>
+    <input class="in" type="datetime-local" id="ts-date">
+
+    <div class="stats" id="ts-out"></div>
+    <div class="row"><button class="btn" data-act="copy">Copy details</button></div>`;
+
+  const unixIn = $("#ts-unix", root);
+  const dateIn = $("#ts-date", root);
+  const out = $("#ts-out", root);
+
+  const toLocalInput = (d) =>
+    `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+
+  const relative = (d) => {
+    const diff = Date.now() - d.getTime();
+    const abs = Math.abs(diff);
+    const units = [
+      ["year", 31536000000], ["month", 2592000000], ["day", 86400000],
+      ["hour", 3600000], ["minute", 60000], ["second", 1000],
+    ];
+    for (const [name, ms] of units) {
+      if (abs >= ms) {
+        const n = Math.round(abs / ms);
+        return `${n} ${name}${n === 1 ? "" : "s"} ${diff >= 0 ? "ago" : "from now"}`;
+      }
+    }
+    return "just now";
+  };
+
+  const render = (d) => {
+    const rows = [
+      ["Unix (s)", Math.floor(d.getTime() / 1000)],
+      ["Unix (ms)", d.getTime()],
+      ["ISO 8601", d.toISOString()],
+      ["UTC", d.toUTCString()],
+      ["Local", d.toLocaleString()],
+      ["Relative", relative(d)],
+    ];
+    out.innerHTML = rows
+      .map(([k, v]) => `<div class="stat"><span class="stat-k">${k}</span><span class="stat-v" style="font-size:14px;word-break:break-all">${escapeHtml(String(v))}</span></div>`)
+      .join("");
+  };
+
+  const fromUnix = () => {
+    const raw = unixIn.value.trim();
+    if (!raw) return;
+    const n = Number(raw);
+    if (!Number.isFinite(n)) return;
+    const d = new Date(Math.abs(n) < 1e11 ? n * 1000 : n);
+    if (isNaN(d)) return;
+    dateIn.value = toLocalInput(d);
+    render(d);
+  };
+
+  const fromDate = () => {
+    if (!dateIn.value) return;
+    const d = new Date(dateIn.value);
+    if (isNaN(d)) return;
+    unixIn.value = Math.floor(d.getTime() / 1000);
+    render(d);
+  };
+
+  unixIn.addEventListener("input", fromUnix);
+  dateIn.addEventListener("input", fromDate);
+  $('[data-act="now"]', root).onclick = () => {
+    const d = new Date();
+    unixIn.value = Math.floor(d.getTime() / 1000);
+    dateIn.value = toLocalInput(d);
+    render(d);
+  };
+  $('[data-act="copy"]', root).onclick = () => copy(out.textContent.replace(/\s+/g, " ").trim(), "Details copied");
+
+  $('[data-act="now"]', root).click();
+}
+
+/* ============================================================
+   Tool 10 — Lorem ipsum generator
+   ============================================================ */
+const LOREM_WORDS = ("lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor " +
+  "incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation " +
+  "ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure in reprehenderit voluptate " +
+  "velit esse cillum eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt " +
+  "culpa qui officia deserunt mollit anim id est laborum").split(" ");
+
+function renderLorem(root) {
+  root.innerHTML = `
+    <div class="row">
+      <label class="chk">Type:
+        <select class="in" id="l-type" style="width:auto;padding:7px 10px">
+          <option value="paragraphs">Paragraphs</option>
+          <option value="sentences">Sentences</option>
+          <option value="words">Words</option>
+        </select>
+      </label>
+      <label class="chk">Amount:
+        <input class="in" id="l-count" type="number" min="1" max="50" value="3" style="width:80px">
+      </label>
+      <button class="btn primary" data-act="gen">Generate</button>
+      <button class="btn" data-act="copy">Copy</button>
+    </div>
+    <label class="lbl">Output</label>
+    <textarea class="ta" id="l-out" rows="12" readonly></textarea>`;
+
+  const type = $("#l-type", root);
+  const count = $("#l-count", root);
+  const out = $("#l-out", root);
+
+  const word = () => LOREM_WORDS[randInt(LOREM_WORDS.length)];
+
+  const sentence = () => {
+    const n = 6 + randInt(9);
+    const words = Array.from({ length: n }, word);
+    return cap(words.join(" ")) + ".";
+  };
+
+  const paragraph = () => {
+    const n = 3 + randInt(4);
+    return Array.from({ length: n }, sentence).join(" ");
+  };
+
+  const generate = () => {
+    const n = Math.max(1, Math.min(50, Number(count.value) || 1));
+    let text;
+    if (type.value === "words") text = Array.from({ length: n }, word).join(" ");
+    else if (type.value === "sentences") text = Array.from({ length: n }, sentence).join(" ");
+    else text = Array.from({ length: n }, paragraph).join("\n\n");
+    out.value = text;
+  };
+
+  $('[data-act="gen"]', root).onclick = generate;
+  $('[data-act="copy"]', root).onclick = () => copy(out.value, "Lorem ipsum copied");
+  generate();
+}
+
+/* ============================================================
+   Tool 11 — UUID generator
+   ============================================================ */
+function uuidv4() {
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = [...b].map((x) => x.toString(16).padStart(2, "0"));
+  return `${h[0]}${h[1]}${h[2]}${h[3]}-${h[4]}${h[5]}-${h[6]}${h[7]}-${h[8]}${h[9]}-${h[10]}${h[11]}${h[12]}${h[13]}${h[14]}${h[15]}`;
+}
+
+function renderUuid(root) {
+  root.innerHTML = `
+    <div class="row">
+      <label class="chk">How many:
+        <input class="in" id="uu-count" type="number" min="1" max="500" value="5" style="width:90px">
+      </label>
+      <label class="chk"><input type="checkbox" id="uu-upper"> UPPERCASE</label>
+      <label class="chk"><input type="checkbox" id="uu-nodash"> no dashes</label>
+      <button class="btn primary" data-act="gen">Generate</button>
+      <button class="btn" data-act="copy">Copy all</button>
+    </div>
+    <label class="lbl">Result</label>
+    <textarea class="ta" id="uu-out" rows="12" readonly></textarea>`;
+
+  const count = $("#uu-count", root);
+  const upper = $("#uu-upper", root);
+  const nodash = $("#uu-nodash", root);
+  const out = $("#uu-out", root);
+
+  const generate = () => {
+    const n = Math.max(1, Math.min(500, Number(count.value) || 1));
+    const list = Array.from({ length: n }, () => {
+      let id = uuidv4();
+      if (nodash.checked) id = id.replace(/-/g, "");
+      if (upper.checked) id = id.toUpperCase();
+      return id;
+    });
+    out.value = list.join("\n");
+  };
+
+  $('[data-act="gen"]', root).onclick = generate;
+  $('[data-act="copy"]', root).onclick = () => copy(out.value, "UUIDs copied");
+  [upper, nodash].forEach((el) => el.addEventListener("change", generate));
+
+  generate();
+}
+
+/* ============================================================
+   Tool registry + router
+   ============================================================ */
+const TOOLS = [
+  { id: "word-counter", name: "Word Counter", icon: "📝", desc: "Count words, characters, sentences and reading time.", tags: "text length characters", render: renderCounter },
+  { id: "case-converter", name: "Case Converter", icon: "🔠", desc: "Switch between UPPER, lower, Title, camelCase, snake_case and more.", tags: "text uppercase camel snake", render: renderCase },
+  { id: "base64", name: "Base64 Encoder", icon: "🔐", desc: "Encode and decode Base64 with full Unicode support.", tags: "encode decode base64 unicode", render: renderBase64 },
+  { id: "url-encoder", name: "URL Encoder", icon: "🔗", desc: "Percent-encode and decode URLs and query strings.", tags: "url uri percent encode decode", render: renderUrl },
+  { id: "json-formatter", name: "JSON Formatter", icon: "🧩", desc: "Pretty-print, minify and validate JSON with error positions.", tags: "json format minify validate pretty", render: renderJson },
+  { id: "color-converter", name: "Color Converter", icon: "🎨", desc: "Convert between HEX, RGB and HSL, plus tints and shades.", tags: "color hex rgb hsl palette", render: renderColor },
+  { id: "password-generator", name: "Password Generator", icon: "🔑", desc: "Create strong random passwords with an entropy meter.", tags: "password random security entropy", render: renderPassword },
+  { id: "hash-generator", name: "Hash Generator", icon: "#️⃣", desc: "Compute SHA-1, SHA-256, SHA-384 and SHA-512 hashes.", tags: "hash sha checksum crypto", render: renderHash },
+  { id: "timestamp", name: "Timestamp Converter", icon: "⏱️", desc: "Convert between Unix timestamps and human dates.", tags: "unix timestamp epoch date time", render: renderTimestamp },
+  { id: "lorem-ipsum", name: "Lorem Ipsum", icon: "📄", desc: "Generate placeholder paragraphs, sentences or words.", tags: "lorem ipsum placeholder dummy text", render: renderLorem },
+  { id: "uuid", name: "UUID Generator", icon: "🆔", desc: "Generate random RFC 4122 version 4 UUIDs in bulk.", tags: "uuid guid random identifier", render: renderUuid },
+];
+
+const homeEl = $("#home");
+const viewEl = $("#view");
+const gridEl = $("#grid");
+const viewTitle = $("#view-title");
+const viewDesc = $("#view-desc");
+const viewBody = $("#view-body");
+const searchEl = $("#search");
+
+function renderGrid(filter = "") {
+  const f = filter.trim().toLowerCase();
+  const list = TOOLS.filter((t) =>
+    !f || `${t.name} ${t.desc} ${t.tags}`.toLowerCase().includes(f)
+  );
+
+  gridEl.innerHTML = list.length
+    ? list
+        .map(
+          (t) => `
+        <a class="card" href="#/${t.id}">
+          <span class="card-icon">${t.icon}</span>
+          <h3>${t.name}</h3>
+          <p>${t.desc}</p>
+        </a>`
+        )
+        .join("")
+    : `<p class="muted">No tools match “${escapeHtml(filter)}”.</p>`;
+}
+
+function route() {
+  const id = location.hash.replace(/^#\/?/, "");
+  const tool = TOOLS.find((t) => t.id === id);
+
+  if (tool) {
+    homeEl.hidden = true;
+    viewEl.hidden = false;
+    viewTitle.textContent = tool.name;
+    viewDesc.textContent = tool.desc;
+    viewBody.innerHTML = "";
+    tool.render(viewBody);
+    document.title = `${tool.name} — Toolbox`;
+    window.scrollTo({ top: 0 });
+  } else {
+    viewEl.hidden = true;
+    homeEl.hidden = false;
+    viewBody.innerHTML = "";
+    document.title = "Toolbox — Free Online Utilities";
+  }
+}
+
+/* ============================================================
+   Wiring
+   ============================================================ */
+$("#theme").addEventListener("click", () => {
+  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem("theme", next);
+  updateThemeIcon();
+});
+
+function updateThemeIcon() {
+  $("#theme").textContent = document.documentElement.dataset.theme === "dark" ? "☀️" : "🌙";
+}
+
+$("#back").addEventListener("click", () => { location.hash = "#/"; });
+
+searchEl.addEventListener("input", () => renderGrid(searchEl.value));
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "/" && document.activeElement !== searchEl && !homeEl.hidden) {
+    e.preventDefault();
+    searchEl.focus();
+  }
+  if (e.key === "Escape") {
+    if (document.activeElement === searchEl) { searchEl.value = ""; renderGrid(); searchEl.blur(); }
+    else if (!viewEl.hidden) location.hash = "#/";
+  }
+});
+
+window.addEventListener("hashchange", route);
+
+updateThemeIcon();
+renderGrid();
+route();
+</script>
+</body>
+</html>
