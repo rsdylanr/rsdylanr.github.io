@@ -1,16 +1,9 @@
 import {filesFromDSL,download} from '../lib/util.js';
-
-export default{
-  id:'splitter',name:'Bundle Splitter',icon:'✂️',
-  desc:'Split one giant HTML file (or DSL block) into separate index.html / app.js / styles.css',
-  mount(root){
-    root.innerHTML=`
-      <div class="tabs" id="tabs">
-        <button class="tab active" data-mode="html">HTML mode</button>
-        <button class="tab" data-mode="dsl">DSL mode</button>
-      </div>
-      <div class="tab-panel active" data-panel="html">
-        <p style="color:var(--text-dim);font-size:13px;margin-bottom:8px">Paste a single HTML file containing inline &lt;style&gt; and &lt;script&gt; — they get extracted into separate files.</p>
-      </div>
-      <div class="tab-panel" data-panel="dsl">
-        <p style="color:var(--text-dim);font-size:13px;margin-bottom:8px">Paste <code>
+export default{id:'splitter',name:'Bundle Splitter',icon:'✂️',desc:'Split one giant HTML file (or DSL block) into separate index.html / app.js / styles.css',mount(root){
+root.innerHTML=`<div class="tabs" id="tabs"><button class="tab active" data-mode="html">HTML mode</button><button class="tab" data-mode="dsl">DSL mode</button></div><div class="tab-panel active" data-panel="html"><p style="color:var(--text-dim);font-size:13px;margin-bottom:8px">Paste a single HTML file containing inline &lt;style&gt; and &lt;script&gt; — they get extracted into separate files.</p></div><div class="tab-panel" data-panel="dsl"><p style="color:var(--text-dim);font-size:13px;margin-bottom:8px">Paste filename: blocks — each one becomes a file.</p></div><label>Input</label><textarea id="input" rows="14" placeholder="Paste your giant HTML or DSL here…"></textarea><div class="row"><button id="split" class="btn">Split</button><button id="preview" class="btn small ghost">Preview site</button><button id="download" class="btn small ghost">Download files</button></div><div id="files" style="margin-top:16px"></div><div id="preview-box" style="margin-top:16px"></div>`;
+const $=s=>root.querySelector('#'+s);let mode='html',parsed={};
+root.querySelectorAll('.tab').forEach(t=>{t.onclick=()=>{root.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===t));root.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===t.dataset.mode));mode=t.dataset.mode;};});
+$('split').onclick=()=>{if(mode==='dsl'){parsed=filesFromDSL($('input').value);}else{parsed=splitHTML($('input').value);}if(!Object.keys(parsed).length){$('files').innerHTML='<p class="err">No files found. Check your input.</p>';return;}$('files').innerHTML=Object.entries(parsed).map(([name,content])=>`<div class="result-row" style="flex-direction:column;align-items:stretch;gap:6px"><div style="display:flex;justify-content:space-between;align-items:center"><code>${name}</code><span class="chip">${content.length} chars</span></div><textarea rows="3" readonly>${content.slice(0,500)}${content.length>500?'\n…':''}</textarea></div>`).join('');};
+$('preview').onclick=async()=>{if(!Object.keys(parsed).length){alert('Split first');return;}const indexHTML=parsed['index.html']||parsed['index.htm']||Object.values(parsed).find(v=>v.includes('<html'))||'';if(!indexHTML){alert('No HTML entry point');return;}const blobs={};for(const[name,content]of Object.entries(parsed)){if(name==='index.html')continue;const type=name.endsWith('.css')?'text/css':name.endsWith('.js')?'text/javascript':name.endsWith('.json')?'application/json':'text/plain';blobs[name]=URL.createObjectURL(new Blob([content],{type}));}let finalHTML=indexHTML;for(const[name,url]of Object.entries(blobs)){finalHTML=finalHTML.replace(new RegExp('(href|src)=["\']'+name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'["\']','g'),`$1="${url}"`);}$('preview-box').innerHTML=`<label>Preview</label><iframe class="preview" sandbox="allow-scripts allow-forms allow-popups"></iframe>`;$('preview-box').querySelector('iframe').srcdoc=finalHTML;};
+$('download').onclick=()=>{if(!Object.keys(parsed).length){alert('Split first');return;}if(Object.keys(parsed).length===1){const[name,content]=Object.entries(parsed)[0];download(name,content);return;}Object.entries(parsed).forEach(([name,content],i)=>{setTimeout(()=>download(name,content),i*80);});};
+function splitHTML(html){const files={};let out=html;const css=[],js=[];out=out.replace(/<style[^>]*>([\s\S]*?)<\/style>/gi,(m,body)=>{css.push(body.trim());return'';});out=out.replace(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi,(m,body)=>{if(body.trim())js.push(body.trim());return'';});out=out.replace(/\n{3,}/g,'\n\n').replace(/^\s+|\s+$/gm,'').trim();if(css.length){files['styles.css']=css.join('\n\n/* ---- */\n\n');if(!/styles\.css/.test(out))out=out.replace(/<\/head>/i,'<link rel="stylesheet" href="styles.css">\n</head>');}if(js.length){files['app.js']=js.join('\n\n// ----\n\n');if(!/app\.js/.test(out))out=out.replace(/<\/body>/i,'<script src="app.js"></script>\n</body>');}files['index.html']=out;return files;}}};

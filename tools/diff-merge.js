@@ -1,44 +1,7 @@
 import {myersDiff,esc} from '../lib/util.js';
-
-export default{
-  id:'diff',name:'Diff & Merge',icon:'🔍',
-  desc:'Side-by-side text diff with intra-line highlighting',
-  mount(root){
-    root.innerHTML=`
-      <div class="split">
-        <div class="pane"><label>Original</label><textarea id="a" rows="10" placeholder="Original text…"></textarea></div>
-        <div class="pane"><label>Modified</label><textarea id="b" rows="10" placeholder="Modified text…"></textarea></div>
-      </div>
-      <div class="row"><button id="run" class="btn">Diff</button><button id="swap" class="btn small ghost">Swap</button></div>
-      <div class="stats-grid" id="stats"></div>
-      <label>Result</label>
-      <div id="result" class="highlight-box" style="min-height:200px"></div>`;
-
-    const $=s=>root.querySelector('#'+s);
-
-    function tokenize(text){return text.match(/\s+|[\w']+|[^\s\w]/g)||[];}
-
-    $('run').onclick=()=>{
-      const a=$('a').value,b=$('b').value;
-      const at=tokenize(a),bt=tokenize(b);
-      const diff=myersDiff(at,bt);
-      let added=0,removed=0,htmlStr='';
-      for(const d of diff){
-        if(d.op==='eq')htmlStr+=esc(d.value);
-        else if(d.op==='ins'){htmlStr+=`<span class="add">${esc(d.value)}</span>`;added+=d.value.length;}
-        else{htmlStr+=`<span class="del">${esc(d.value)}</span>`;removed+=d.value.length;}
-      }
-      $('result').innerHTML=htmlStr||'<span style="color:var(--text-dim)">No differences</span>';
-      const net=a.length-b.length;
-      $('stats').innerHTML=[
-        ['Added',added+' chars','add'],
-        ['Removed',removed+' chars','del'],
-        ['Net',net>0?'-'+net:'+'+(-net),net>0?'good':'warn'],
-        ['Original',a.length+' chars',''],
-        ['Modified',b.length+' chars','']
-      ].map(([k,v,c])=>`<div class="stat"><div class="stat-value" style="${c==='add'?'color:var(--success)':c==='del'?'color:var(--error)':c==='good'?'color:var(--success)':'color:var(--accent)'}">${esc(v)}</div><div class="stat-label">${k}</div></div>`).join('');
-    };
-
-    $('swap').onclick=()=>{const t=$('a').value;$('a').value=$('b').value;$('b').value=t;};
-  }
-};
+export default{id:'diff',name:'Diff & Merge',icon:'🔍',desc:'Side-by-side text diff with intra-line highlighting',mount(root){
+root.innerHTML=`<div class="split"><div class="pane"><label>Original</label><textarea id="a" rows="10" placeholder="Original text…"></textarea></div><div class="pane"><label>Modified</label><textarea id="b" rows="10" placeholder="Modified text…"></textarea></div></div><div class="row"><button id="run" class="btn">Diff</button><button id="swap" class="btn small ghost">Swap</button></div><div class="stats-grid" id="stats"></div><label>Result</label><div id="result" class="highlight-box" style="min-height:200px"></div>`;
+const $=s=>root.querySelector('#'+s);
+function tokenize(text){return text.match(/\s+|[\w']+|[^\s\w]/g)||[];}
+$('run').onclick=()=>{const a=$('a').value,b=$('b').value;const at=tokenize(a),bt=tokenize(b);const diff=myersDiff(at,bt);let added=0,removed=0,htmlStr='';for(const d of diff){if(d.op==='eq')htmlStr+=esc(d.value);else if(d.op==='ins'){htmlStr+=`<span class="add">${esc(d.value)}</span>`;added+=d.value.length;}else{htmlStr+=`<span class="del">${esc(d.value)}</span>`;removed+=d.value.length;}}$('result').innerHTML=htmlStr||'<span style="color:var(--text-dim)">No differences</span>';const net=a.length-b.length;$('stats').innerHTML=[['Added',added+' chars','add'],['Removed',removed+' chars','del'],['Net',net>0?'-'+net:'+'+(-net),net>0?'good':'warn'],['Original',a.length+' chars',''],['Modified',b.length+' chars','']].map(([k,v,c])=>`<div class="stat"><div class="stat-value" style="${c==='add'?'color:var(--success)':c==='del'?'color:var(--error)':c==='good'?'color:var(--success)':'color:var(--accent)'}">${esc(v)}</div><div class="stat-label">${k}</div></div>`).join('');};
+$('swap').onclick=()=>{const t=$('a').value;$('a').value=$('b').value;$('b').value=t;};}};
