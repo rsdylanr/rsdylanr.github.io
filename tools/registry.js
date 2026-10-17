@@ -1,0 +1,13 @@
+import password from './password.js';
+import base64 from './base64.js';
+import hash from './hash.js';
+import json from './json.js';
+import color from './color.js';
+import uuid from './uuid.js';
+import timestamp from './timestamp.js';
+import textStats from './text-stats.js';
+import caseConv from './case.js';
+import lorem from './lorem.js';
+import url from './url.js';
+import regex from './regex.js';
+export default [password,base64,hash,json,color,uuid,timestamp,textStats,caseConv,lorem,url,regex];

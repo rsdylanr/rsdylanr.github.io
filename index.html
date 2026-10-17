@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Toolbox — All-in-One Web Tools</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="brand">🧰 Toolbox</div>
+    <nav id="tool-list"></nav>
+    <div class="sidebar-footer">
+      <button id="theme-toggle">🌓 Toggle theme</button>
+    </div>
+  </aside>
+  <main id="main">
+    <header id="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button id="menu-toggle">☰</button>
+        <div><h1 id="tool-title">Loading…</h1><p id="tool-desc"></p></div>
+      </div>
+    </header>
+    <div id="content"></div>
+  </main>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>

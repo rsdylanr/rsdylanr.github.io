@@ -1,0 +1,5 @@
+export default{id:'json',name:'JSON Formatter',icon:'{ }',description:'Format, minify, and validate JSON',mount(root){
+root.innerHTML=['<div class="grid-2"><div><label>Input</label><textarea id="input" rows="14" placeholder="Paste JSON here"></textarea></div><div><label>Output</label><textarea id="output" rows="14" readonly></textarea></div></div>','<div class="row"><button id="fmt" class="btn">Format</button><button id="min" class="btn">Minify</button><span id="status"></span></div>'].join('');
+const $=id=>root.querySelector('#'+id);
+$('fmt').onclick=()=>{try{const o=JSON.parse($('input').value);$('output').value=JSON.stringify(o,null,2);$('status').textContent='✅ Valid JSON';$('status').className='ok';}catch(e){$('status').textContent='❌ '+e.message;$('status').className='err';}};
+$('min').onclick=()=>{try{const o=JSON.parse($('input').value);$('output').value=JSON.stringify(o);$('status').textContent='✅ Minified';$('status').className='ok';}catch(e){$('status').textContent='❌ '+e.message;$('status').className='err';}};}};

@@ -1,0 +1,6 @@
+export default{id:'url',name:'URL Tools',icon:'🔗',description:'Encode, decode, and parse URLs',mount(root){
+root.innerHTML=['<label>Input</label><textarea id="input" rows="4" placeholder="URL or text…"></textarea>','<div class="row"><button id="enc" class="btn">Encode</button><button id="dec" class="btn">Decode</button><button id="parse" class="btn">Parse URL</button></div>','<label>Output</label><textarea id="output" rows="4" readonly></textarea>','<div id="parsed"></div>'].join('');
+const $=id=>root.querySelector('#'+id);
+$('enc').onclick=()=>{$('output').value=encodeURIComponent($('input').value);};
+$('dec').onclick=()=>{try{$('output').value=decodeURIComponent($('input').value);}catch(e){$('output').value='Error: '+e.message;}};
+$('parse').onclick=()=>{try{const u=new URL($('input').value);const parts=[['Protocol',u.protocol],['Host',u.host],['Hostname',u.hostname],['Port',u.port||'(default)'],['Path',u.pathname],['Hash',u.hash],['Search',u.search]];const params=[...u.searchParams.entries()];let h=parts.map(([k,v])=>'<div class="result-row"><span class="alg">'+k+'</span><code>'+(v||'—')+'</code></div>').join('');if(params.length)h+='<div class="result-row"><span class="alg">Params</span><code>'+params.map(([k,v])=>k+'='+v).join('<br>')+'</code></div>';$('parsed').innerHTML=h;}catch(e){$('parsed').innerHTML='<p class="err">Invalid URL</p>';}};}};

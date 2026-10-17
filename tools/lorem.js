@@ -1,0 +1,8 @@
+const WORDS='lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure in reprehenderit voluptate velit esse cillum eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt culpa qui officia deserunt mollit anim id est laborum'.split(' ');
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+export default{id:'lorem',name:'Lorem Ipsum',icon:'📝',description:'Generate placeholder text',mount(root){
+root.innerHTML=['<div class="row"><label>Paragraphs: <input type="number" id="count" value="3" min="1" max="20" style="width:80px"></label><label>Sentences/para: <input type="number" id="sent" value="4" min="1" max="15" style="width:80px"></label><button id="gen" class="btn">Generate</button><button id="copy" class="btn small">Copy</button></div>','<textarea id="out" rows="14" readonly></textarea>'].join('');
+const $=id=>root.querySelector('#'+id);
+function sentence(){const n=6+Math.floor(Math.random()*10);const ws=[];for(let i=0;i<n;i++)ws.push(pick(WORDS));ws[0]=ws[0][0].toUpperCase()+ws[0].slice(1);return ws.join(' ')+'.';}
+function gen(){const p=Math.min(20,Math.max(1,+$('count').value||3));const s=Math.min(15,Math.max(1,+$('sent').value||4));const out=[];for(let i=0;i<p;i++){const ss=[];for(let j=0;j<s;j++)ss.push(sentence());out.push(ss.join(' '));}$('out').value=out.join('\n\n');}
+$('gen').onclick=gen;$('copy').onclick=()=>navigator.clipboard.writeText($('out').value);gen();}};
