@@ -1,0 +1,47 @@
+export default{
+  id:'ngram',name:'N-gram Miner',icon:'📈',
+  desc:'Find the most repeated phrases across pasted text',
+  mount(root){
+    root.innerHTML=`
+      <label>Paste text (transcripts, messages, logs…)</label>
+      <textarea id="text" rows="10"></textarea>
+      <div class="grid-3">
+        <div><label>Min N</label><input type="number" id="minN" value="2" min="1" max="6"></div>
+        <div><label>Max N</label><input type="number" id="maxN" value="4" min="1" max="8"></div>
+        <div><label>Min count</label><input type="number" id="minCount" value="3" min="2" max="100"></div>
+      </div>
+      <div class="row"><button id="run" class="btn">Mine</button><button id="export" class="btn small ghost">Export as dict</button></div>
+      <div id="results"></div>`;
+
+    const $=s=>root.querySelector('#'+s);
+    let lastTop=[];
+
+    $('run').onclick=()=>{
+      const text=$('text').value.toLowerCase().replace(/[^\w\s']/g,' ');
+      const tokens=text.split(/\s+/).filter(Boolean);
+      const minN=+$('minN').value,maxN=+$('maxN').value,minCount=+$('minCount').value;
+      const counts=new Map();
+      for(let n=minN;n<=maxN;n++){
+        for(let i=0;i<=tokens.length-n;i++){
+          const gram=tokens.slice(i,i+n).join(' ');
+          counts.set(gram,(counts.get(gram)||0)+1);
+        }
+      }
+      const sorted=[...counts.entries()].filter(([,c])=>c>=minCount).sort((a,b)=>b[1]-a[1]).slice(0,100);
+      lastTop=sorted;
+      $('results').innerHTML=`
+        <label>Top ${sorted.length} phrases (min count ${minCount})</label>
+        ${sorted.map(([g,c])=>{
+          const tokens=g.split(' ');
+          const savings=(g.length-1)*(c-1);
+          return `<div class="result-row"><code>${g}</code><span class="chip">${c}×</span><span class="chip ${savings>20?'good':''}">${savings>0?'-'+savings+' char':''}</span></div>`;
+        }).join('')||'<p style="color:var(--text-dim)">No phrases matched.</p>'}`;
+    };
+
+    $('export').onclick=()=>{
+      const arr=lastTop.map(([phrase,c])=>({from:phrase,to:phrase.split(' ').map(w=>w[0]).join('').toUpperCase(),count:c}));
+      const blob=new Blob([JSON.stringify(arr,null,2)],{type:'application/json'});
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ngram-candidates.json';a.click();
+    };
+  }
+};

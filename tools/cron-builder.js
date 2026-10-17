@@ -1,0 +1,106 @@
+import {esc} from '../lib/util.js';
+
+export default{
+  id:'cron',name:'Cron Builder',icon:'⏰',
+  desc:'Build cron expressions and preview the next 10 runs',
+  mount(root){
+    root.innerHTML=`
+      <label>Cron expression (minute hour day month weekday)</label>
+      <input id="expr" value="0 9 * * 1-5" style="font-family:monospace;font-size:15px">
+      <div class="row">
+        <button class="btn" data-set="0 9 * * 1-5">Weekdays 9am</button>
+        <button class="btn small ghost" data-set="0 * * * *">Hourly</button>
+        <button class="btn small ghost" data-set="*/15 * * * *">Every 15 min</button>
+        <button class="btn small ghost" data-set="0 0 * * *">Daily midnight</button>
+        <button class="btn small ghost" data-set="0 0 1 * *">Monthly</button>
+      </div>
+      <div id="status" style="margin-top:12px"></div>
+      <label>Next 10 runs</label>
+      <div id="runs"></div>
+      <label style="margin-top:16px">Explain</label>
+      <div id="explain" class="highlight-box"></div>`;
+
+    const $=s=>root.querySelector('#'+s);
+
+    function parseField(field,min,max){
+      const out=[];
+      for(const part of field.split(',')){
+        if(part==='*'){for(let i=min;i<=max;i++)out.push(i);continue;}
+        if(part.includes('/')){
+          const[base,step]=part.split('/');
+          const s=+step;
+          if(base==='*'){for(let i=min;i<=max;i+=s)out.push(i);}
+          else if(base.includes('-')){
+            const[a,b]=base.split('-').map(Number);
+            for(let i=a;i<=b;i+=s)out.push(i);
+          }
+          continue;
+        }
+        if(part.includes('-')){
+          const[a,b]=part.split('-').map(Number);
+          for(let i=a;i<=b;i++)out.push(i);continue;
+        }
+        const n=+part;
+        if(!isNaN(n))out.push(n);
+      }
+      return out.sort((a,b)=>a-b);
+    }
+
+    function validate(expr){
+      const parts=expr.trim().split(/\s+/);
+      if(parts.length!==5)return{error:'Need exactly 5 fields'};
+      const[minute,hour,dom,month,dow]=parts;
+      try{
+        return{min:parseField(minute,0,59),hour:parseField(hour,0,23),
+                dom:parseField(dom,1,31),month:parseField(month,1,12),
+                dow:parseField(dow,0,6)};
+      }catch(e){return{error:e.message};}
+    }
+
+    function nextRuns(expr,count){
+      const p=validate(expr);
+      if(p.error)return{error:p.error};
+      const runs=[];
+      const d=new Date();
+      d.setSeconds(0,0);
+      d.setMinutes(d.getMinutes()+1);
+      for(let i=0;i<200000&&runs.length<count;i++){
+        if(p.min.includes(d.getMinutes())&&
+           p.hour.includes(d.getHours())&&
+           p.dom.includes(d.getDate())&&
+           p.month.includes(d.getMonth()+1)&&
+           p.dow.includes(d.getDay())){
+          runs.push(new Date(d));
+        }
+        d.setMinutes(d.getMinutes()+1);
+      }
+      return{runs};
+    }
+
+    function run(){
+      const expr=$('expr').value;
+      const r=nextRuns(expr,10);
+      if(r.error){$('status').innerHTML=`<span class="err">❌ ${r.error}</span>`;$('runs').innerHTML='';$('explain').innerHTML='';return;}
+      $('status').innerHTML=`<span class="ok">✅ Valid</span>`;
+      $('runs').innerHTML=r.runs.map((d,i)=>`<div class="result-row"><span class="chip">${i+1}</span><code>${d.toString()}</code></div>`).join('');
+      $('explain').innerHTML=explain(expr);
+    }
+
+    function explain(expr){
+      const[minute,hour,dom,month,dow]=expr.split(/\s+/);
+      const fieldExplain=(v,label,names=[])=>{
+        if(v==='*')return`every ${label}`;
+        if(v.includes('/'))return`every ${v.split('/')[1]} ${label}s`;
+        if(v.includes(','))return`${v.split(',').map(x=>names[x-1]||x).join(', ')}`;
+        if(v.includes('-')){const[a,b]=v.split('-');return`${names[a-1]||a} through ${names[b-1]||b}`;}
+        return names[+v-1]||v;
+      };
+      const dows=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      return `At ${fieldExplain(minute,'minute')}, ${fieldExplain(hour,'hour')}, ${fieldExplain(dom,'day-of-month')}, ${fieldExplain(month,'month')}, ${fieldExplain(dow,'day-of-week',dows)}`;
+    }
+
+    $('expr').oninput=run;
+    root.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{$('expr').value=b.dataset.set;run();});
+    run();
+  }
+};

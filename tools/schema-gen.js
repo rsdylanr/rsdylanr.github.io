@@ -1,0 +1,81 @@
+import {esc} from '../lib/util.js';
+
+export default{
+  id:'schema',name:'Schema Generator',icon:'📐',
+  desc:'JSON → TypeScript, Zod, or JSON Schema',
+  mount(root){
+    root.innerHTML=`
+      <label>JSON input</label>
+      <textarea id="input" rows="12" placeholder='{"name":"Alice","age":30,"tags":["a","b"]}'></textarea>
+      <div class="row">
+        <label><input type="radio" name="fmt" value="ts" checked> TypeScript</label>
+        <label><input type="radio" name="fmt" value="zod"> Zod</label>
+        <label><input type="radio" name="fmt" value="json"> JSON Schema</label>
+        <button id="gen" class="btn">Generate</button>
+        <button id="copy" class="btn small ghost">Copy</button>
+      </div>
+      <label>Output</label>
+      <textarea id="output" rows="14" readonly></textarea>`;
+
+    const $=s=>root.querySelector('#'+s);
+
+    function tsType(val,name='Root',indent=0,depth=0){
+      const pad='  '.repeat(indent);
+      if(val===null)return'null';
+      if(Array.isArray(val)){
+        if(!val.length)return'any[]';
+        return tsType(val[0],name,indent,depth+1)+'[]';
+      }
+      if(typeof val==='object'){
+        if(depth>3)return'Record<string, any>';
+        const lines=Object.entries(val).map(([k,v])=>
+          `${pad}  ${/^[a-zA-Z_$][\w$]*$/.test(k)?k:JSON.stringify(k)}: ${tsType(v,k,indent+1,depth+1)};`
+        );
+        return `{\n${lines.join('\n')}\n${pad}}`;
+      }
+      return typeof val;
+    }
+
+    function zodType(val,depth=0){
+      if(val===null)return'z.null()';
+      if(Array.isArray(val)){
+        if(!val.length)return'z.array(z.any())';
+        return `z.array(${zodType(val[0],depth+1)})`;
+      }
+      if(typeof val==='object'){
+        if(depth>3)return'z.record(z.any())';
+        const lines=Object.entries(val).map(([k,v])=>{
+          const safeKey=/^[a-zA-Z_$][\w$]*$/.test(k)?k:JSON.stringify(k);
+          return `  ${safeKey}: ${zodType(v,depth+1)},`;
+        });
+        return `z.object({\n${lines.join('\n')}\n})`;
+      }
+      if(typeof val==='string')return'z.string()';
+      if(typeof val==='number')return'z.number()';
+      if(typeof val==='boolean')return'z.boolean()';
+      return'z.any()';
+    }
+
+    function jsonSchema(val,depth=0){
+      if(val===null)return{type:'null'};
+      if(Array.isArray(val))return{type:'array',items:val.length?jsonSchema(val[0],depth+1):{}};
+      if(typeof val==='object'){
+        const props={},required=[];
+        for(const[k,v]of Object.entries(val)){props[k]=jsonSchema(v,depth+1);required.push(k);}
+        return{type:'object',properties:props,required};
+      }
+      return{type:typeof val};
+    }
+
+    $('gen').onclick=()=>{
+      let data;
+      try{data=JSON.parse($('input').value);}
+      catch(e){$('output').value='Invalid JSON: '+e.message;return;}
+      const fmt=root.querySelector('input[name="fmt"]:checked').value;
+      if(fmt==='ts')$('output').value=`export interface Root ${tsType(data)}`;
+      else if(fmt==='zod')$('output').value=`import { z } from 'zod';\n\nexport const Root = ${zodType(data)};\n\nexport type Root = z.infer<typeof Root>;`;
+      else $('output').value=JSON.stringify(jsonSchema(data),null,2);
+    };
+    $('copy').onclick=()=>navigator.clipboard.writeText($('output').value);
+  }
+};

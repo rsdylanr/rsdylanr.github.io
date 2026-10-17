@@ -1,0 +1,73 @@
+export default{
+  id:'convert',name:'Format Converter',icon:'🔄',
+  desc:'JSON ↔ YAML ↔ CSV',
+  mount(root){
+    root.innerHTML=`
+      <div class="grid-2">
+        <div><label>Input format</label>
+          <select id="from"><option value="json">JSON</option><option value="yaml">YAML</option><option value="csv">CSV</option></select></div>
+        <div><label>Output format</label>
+          <select id="to"><option value="yaml">YAML</option><option value="json">JSON</option><option value="csv">CSV</option></select></div>
+      </div>
+      <label>Input</label>
+      <textarea id="input" rows="12"></textarea>
+      <div class="row"><button id="run" class="btn">Convert</button><button id="copy" class="btn small ghost">Copy</button></div>
+      <label>Output</label>
+      <textarea id="output" rows="12" readonly></textarea>`;
+
+    const $=s=>root.querySelector('#'+s);
+
+    function parseCSV(text){
+      const lines=text.replace(/\r\n/g,'\n').split('\n').filter(Boolean);
+      if(!lines.length)return[];
+      const splitLine=l=>{
+        const out=[];let cur='',inQ=false;
+        for(let i=0;i<l.length;i++){
+          const c=l[i];
+          if(c==='"'){if(inQ&&l[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+          else if(c===','&&!inQ){out.push(cur);cur='';}
+          else cur+=c;
+        }
+        out.push(cur);
+        return out;
+      };
+      const headers=splitLine(lines[0]);
+      return lines.slice(1).map(l=>{
+        const vals=splitLine(l);
+        const obj={};
+        headers.forEach((h,i)=>obj[h]=vals[i]??'');
+        return obj;
+      });
+    }
+
+    function toCSV(arr){
+      if(!Array.isArray(arr)||!arr.length)return'';
+      const keys=[...new Set(arr.flatMap(o=>Object.keys(o)))];
+      const esc=v=>{
+        const s=String(v??'');
+        return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+      };
+      return [keys.join(','),...arr.map(o=>keys.map(k=>esc(o[k])).join(','))].join('\n');
+    }
+
+    $('run').onclick=async()=>{
+      const from=$('from').value,to=$('to').value,input=$('input').value;
+      try{
+        let data;
+        if(from==='json')data=JSON.parse(input);
+        else if(from==='yaml'){const YAML=await import('yaml');data=YAML.parse(input);}
+        else data=parseCSV(input);
+
+        let out;
+        if(to==='json')out=JSON.stringify(data,null,2);
+        else if(to==='yaml'){const YAML=await import('yaml');out=YAML.stringify(data);}
+        else out=toCSV(Array.isArray(data)?data:[data]);
+
+        $('output').value=out;
+      }catch(e){
+        $('output').value='Error: '+e.message;
+      }
+    };
+    $('copy').onclick=()=>navigator.clipboard.writeText($('output').value);
+  }
+};

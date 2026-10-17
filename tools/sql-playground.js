@@ -1,0 +1,93 @@
+export default{
+  id:'sql',name:'SQL Playground',icon:'💾',
+  desc:'Real SQLite in your browser — import CSV, run queries, export results',
+  async mount(root){
+    root.innerHTML=`
+      <p style="color:var(--text-dim);font-size:13px;margin-bottom:8px">Loads SQLite in-browser via sql.js (WebAssembly).</p>
+      <label>SQL</label>
+      <textarea id="sql" rows="8">SELECT 'hello' AS greeting, 42 AS answer;</textarea>
+      <div class="row">
+        <button id="run" class="btn">▶ Run</button>
+        <label><input type="file" id="import" accept=".csv" style="font-size:12px"> Import CSV</label>
+        <label>Table name: <input id="tname" placeholder="data" style="width:120px"></label>
+      </div>
+      <div id="status" style="margin-top:12px;font-size:13px"></div>
+      <div id="result" style="overflow-x:auto"></div>`;
+
+    const $=s=>root.querySelector('#'+s);
+    let SQL=null,db=null;
+
+    async function loadSQL(){
+      if(SQL)return SQL;
+      $('status').innerHTML='⏳ Loading SQLite…';
+      if(!window.initSqlJs){
+        await new Promise((res,rej)=>{
+          const s=document.createElement('script');
+          s.src='https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.js';
+          s.onload=res;s.onerror=rej;
+          document.head.appendChild(s);
+        });
+      }
+      SQL=await window.initSqlJs({locateFile:f=>`https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/${f}`});
+      $('status').innerHTML='✅ SQLite ready';
+      return SQL;
+    }
+
+    $('run').onclick=async()=>{
+      try{
+        await loadSQL();
+        if(!db)db=new SQL.Database();
+        const sql=$('sql').value.trim();
+        if(!sql)return;
+        const results=db.exec(sql);
+        if(!results.length){$('result').innerHTML='<p class="ok">Query OK — no rows.</p>';return;}
+        const r=results[0];
+        const html=`<table class="data"><thead><tr>${r.columns.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+          <tbody>${r.values.map(row=>'<tr>'+row.map(v=>`<td>${v===null?'<em>NULL</em>':String(v)}</td>`).join('')+'</tr>').join('')}</tbody></table>
+          <p style="font-size:12px;color:var(--text-dim);margin-top:8px">${r.values.length} row(s)</p>`;
+        $('result').innerHTML=html;
+        $('status').innerHTML='✅ Query OK';
+      }catch(e){
+        $('status').innerHTML=`<span class="err">❌ ${e.message}</span>`;
+      }
+    };
+
+    $('import').onchange=async()=>{
+      const f=$('import').files[0];
+      if(!f)return;
+      try{
+        await loadSQL();
+        if(!db)db=new SQL.Database();
+        const text=await f.text();
+        const table=($('tname').value||f.name.replace(/\.csv$/,'')).replace(/\W/g,'_')||'data';
+        const lines=text.replace(/\r\n/g,'\n').split('\n').filter(Boolean);
+        const parseLine=l=>{
+          const out=[];let cur='',inQ=false;
+          for(let i=0;i<l.length;i++){
+            const c=l[i];
+            if(c==='"'){if(inQ&&l[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+            else if(c===','&&!inQ){out.push(cur);cur='';}
+            else cur+=c;
+          }
+          out.push(cur);return out;
+        };
+        const headers=parseLine(lines[0]);
+        const cols=headers.map(h=>`"${h.replace(/"/g,'""')}" TEXT`).join(',');
+        db.run(`DROP TABLE IF EXISTS "${table}"`);
+        db.run(`CREATE TABLE "${table}" (${cols})`);
+        const stmt=db.prepare(`INSERT INTO "${table}" VALUES (${headers.map(()=>'?').join(',')})`);
+        for(const line of lines.slice(1)){
+          const vals=parseLine(line);
+          stmt.run(vals);
+        }
+        stmt.free();
+        $('status').innerHTML=`✅ Imported ${lines.length-1} rows into "${table}"`;
+        $('sql').value=`SELECT * FROM "${table}" LIMIT 20;`;
+      }catch(e){
+        $('status').innerHTML=`<span class="err">❌ ${e.message}</span>`;
+      }
+    };
+
+    loadSQL().catch(e=>{$('status').innerHTML=`<span class="err">Failed to load SQLite: ${e.message}</span>`;});
+  }
+};

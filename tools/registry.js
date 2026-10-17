@@ -1,13 +1,20 @@
-import password from './password.js';
-import base64 from './base64.js';
-import hash from './hash.js';
-import json from './json.js';
-import color from './color.js';
-import uuid from './uuid.js';
-import timestamp from './timestamp.js';
-import textStats from './text-stats.js';
-import caseConv from './case.js';
-import lorem from './lorem.js';
-import url from './url.js';
-import regex from './regex.js';
-export default [password,base64,hash,json,color,uuid,timestamp,textStats,caseConv,lorem,url,regex];
+export default [
+  {id:'learned',   icon:'🧠', name:'Learned Compressor', desc:'Side-by-side editor that learns your compressions and exports the dictionary', load:()=>import('./learned-compressor.js')},
+  {id:'rules',     icon:'⚡', name:'Rule Compressor',    desc:'Normalize, contract, abbreviate, encode — with live token/byte counter',        load:()=>import('./rule-compressor.js')},
+  {id:'dict',      icon:'🔀', name:'Dictionary Merger',  desc:'Upload, merge, and chunk giant dictionaries into prefix JSON files',            load:()=>import('./dict-merger.js')},
+  {id:'ngram',     icon:'📈', name:'N-gram Miner',       desc:'Find frequent phrases across pasted text — build your compression dictionary',  load:()=>import('./ngram-miner.js')},
+  {id:'splitter',  icon:'✂️', name:'Bundle Splitter',    desc:'Split a giant HTML file (or DSL) into separate index.html / app.js / styles.css', load:()=>import('./bundle-splitter.js')},
+  {id:'diff',      icon:'🔍', name:'Diff & Merge',       desc:'Side-by-side text diff with intra-line highlighting',                            load:()=>import('./diff-merge.js')},
+  {id:'regex',     icon:'🎯', name:'Regex Studio',       desc:'Build, test, and save regular expressions with live highlighting',               load:()=>import('./regex-studio.js')},
+  {id:'ast',       icon:'🌳', name:'AST Visualizer',     desc:'Parse JavaScript into an interactive syntax tree',                                load:()=>import('./ast-js.js')},
+  {id:'minify',    icon:'🗜️', name:'Minifier',           desc:'Terser-powered JS minification with size comparison',                             load:()=>import('./minifier.js')},
+  {id:'schema',    icon:'📐', name:'Schema Generator',   desc:'JSON → TypeScript, Zod, or JSON Schema',                                          load:()=>import('./schema-gen.js')},
+  {id:'convert',   icon:'🔄', name:'Format Converter',   desc:'JSON ↔ YAML ↔ CSV with validation',                                              load:()=>import('./format-convert.js')},
+  {id:'sql',       icon:'💾', name:'SQL Playground',     desc:'Real SQLite in your browser — import CSV, run queries, export results',          load:()=>import('./sql-playground.js')},
+  {id:'crypto',    icon:'🔐', name:'Crypto Toolkit',     desc:'Hashes, AES-GCM vault, TOTP codes, JWT decoder',                                 load:()=>import('./crypto-toolkit.js')},
+  {id:'color',     icon:'🎨', name:'Palette Lab',        desc:'Extract color palette from any image via k-means clustering',                     load:()=>import('./color-lab.js')},
+  {id:'qr',        icon:'📱', name:'QR Studio',          desc:'Generate styled QR codes, download as SVG or PNG',                                load:()=>import('./qr-studio.js')},
+  {id:'cron',      icon:'⏰', name:'Cron Builder',       desc:'Build cron expressions and preview the next 10 runs',                              load:()=>import('./cron-builder.js')},
+  {id:'read',      icon:'📖', name:'Readability',        desc:'Flesch-Kincaid, Gunning Fog, SMOG, ARI, Coleman-Liau',                            load:()=>import('./readability.js')},
+  {id:'anon',      icon:'🕵️', name:'Anonymizer',         desc:'Redact emails, phones, SSNs, credit cards, and URLs from pasted text',            load:()=>import('./anonymizer.js')},
+];

@@ -1,0 +1,106 @@
+import {esc} from '../lib/util.js';
+import {openDB} from '../lib/idb.js';
+
+export default{
+  id:'regex',name:'Regex Studio',icon:'🎯',
+  desc:'Build, test, and save regular expressions with live highlighting',
+  async mount(root){
+    const db=await openDB('regex-studio',1,{upgrade:d=>d.createObjectStore('snippets',{keyPath:'id'})});
+    let snippets=await db.all('snippets');
+
+    root.innerHTML=`
+      <label>Pattern (without slashes)</label>
+      <input id="pattern" placeholder="e.g. \\w+@\\w+\\.\\w+" style="font-family:monospace">
+      <div class="row">
+        <label><input type="checkbox" id="gi"> g</label>
+        <label><input type="checkbox" id="ii" checked> i</label>
+        <label><input type="checkbox" id="mi"> m</label>
+        <label><input type="checkbox" id="si"> s</label>
+        <label><input type="checkbox" id="ui"> u</label>
+        <input id="save-name" placeholder="Save as…" style="width:180px">
+        <button id="save" class="btn small">Save snippet</button>
+      </div>
+      <label>Test string</label>
+      <textarea id="text" rows="8" placeholder="Text to match…"></textarea>
+      <label>Highlighted</label>
+      <div id="highlight" class="highlight-box" style="min-height:80px"></div>
+      <div id="matches"></div>
+      <div id="saved" style="margin-top:16px"></div>`;
+
+    const $=s=>root.querySelector('#'+s);
+
+    function getFlags(){
+      let f='';
+      if($('gi').checked)f+='g';
+      if($('ii').checked)f+='i';
+      if($('mi').checked)f+='m';
+      if($('si').checked)f+='s';
+      if($('ui').checked)f+='u';
+      return f;
+    }
+
+    function run(){
+      const pat=$('pattern').value;
+      if(!pat){$('highlight').textContent='';$('matches').innerHTML='';return;}
+      let re;
+      try{re=new RegExp(pat,getFlags());}
+      catch(e){$('matches').innerHTML=`<p class="err">${esc(e.message)}</p>`;$('highlight').textContent='';return;}
+      const text=$('text').value;
+      const matches=[...text.matchAll(re)];
+      let html='',last=0;
+      for(const m of matches){
+        if(m.index<last)continue;
+        html+=esc(text.slice(last,m.index));
+        html+=`<mark title="index ${m.index}">${esc(m[0])}</mark>`;
+        last=m.index+m[0].length;
+      }
+      html+=esc(text.slice(last));
+      $('highlight').innerHTML=html||'<span style="color:var(--text-dim)">No matches</span>';
+      $('matches').innerHTML=matches.map((m,i)=>
+        `<div class="result-row"><span class="chip">${i+1}</span><code>${esc(m[0])}</code><span class="chip">@${m.index}</span>${m.length>1?`<span class="chip">${m.length-1} groups</span>`:''}</div>`
+      ).join('');
+    }
+
+    function renderSnippets(){
+      $('saved').innerHTML=snippets.length?`
+        <label>Saved snippets (${snippets.length})</label>
+        ${snippets.map(s=>`<div class="result-row">
+          <code>/${esc(s.pattern)}/${s.flags}</code>
+          <span class="chip">${esc(s.name||'unnamed')}</span>
+          <button class="btn small ghost" data-load="${s.id}">Load</button>
+          <button class="btn small danger" data-del="${s.id}">Delete</button>
+        </div>`).join('')}`:'';
+      root.querySelectorAll('[data-load]').forEach(b=>b.onclick=()=>{
+        const s=snippets.find(x=>x.id===b.dataset.load);
+        if(!s)return;
+        $('pattern').value=s.pattern;
+        const flags=s.flags||'';
+        $('gi').checked=flags.includes('g');
+        $('ii').checked=flags.includes('i');
+        $('mi').checked=flags.includes('m');
+        $('si').checked=flags.includes('s');
+        $('ui').checked=flags.includes('u');
+        run();
+      });
+      root.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{
+        await db.del('snippets',b.dataset.del);
+        snippets=snippets.filter(x=>x.id!==b.dataset.del);
+        renderSnippets();
+      });
+    }
+
+    $('save').onclick=async()=>{
+      const pat=$('pattern').value;
+      if(!pat){alert('Enter a pattern first');return;}
+      const id=crypto.randomUUID();
+      const s={id,pattern:pat,flags:getFlags(),name:$('save-name').value||'unnamed'};
+      snippets.push(s);await db.put('snippets',s);
+      $('save-name').value='';renderSnippets();
+    };
+
+    ['pattern','text','gi','ii','mi','si','ui'].forEach(id=>{
+      root.querySelector('#'+id).addEventListener('input',run);
+    });
+    renderSnippets();run();
+  }
+};

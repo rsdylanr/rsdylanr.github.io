@@ -1,0 +1,80 @@
+import {esc} from '../lib/util.js';
+
+export default{
+  id:'color',name:'Palette Lab',icon:'🎨',
+  desc:'Extract the dominant color palette from any image',
+  mount(root){
+    root.innerHTML=`
+      <label>Image</label>
+      <input type="file" id="file" accept="image/*">
+      <label>Number of colors</label>
+      <input type="number" id="k" value="6" min="2" max="16">
+      <div class="row"><button id="run" class="btn">Extract palette</button></div>
+      <div id="preview" style="margin-top:16px"></div>
+      <div id="palette" style="margin-top:16px"></div>`;
+
+    const $=s=>root.querySelector('#'+s);
+
+    $('run').onclick=async()=>{
+      const file=$('file').files[0];
+      if(!file){alert('Choose an image');return;}
+      const url=URL.createObjectURL(file);
+      const img=new Image();
+      await new Promise(r=>{img.onload=r;img.src=url;});
+      const c=document.createElement('canvas');
+      const w=Math.min(img.width,200),h=Math.min(img.height,200);
+      c.width=w;c.height=h;
+      const ctx=c.getContext('2d');
+      ctx.drawImage(img,0,0,w,h);
+      const data=ctx.getImageData(0,0,w,h).data;
+      const pixels=[];
+      for(let i=0;i<data.length;i+=4){
+        pixels.push([data[i],data[i+1],data[i+2]]);
+      }
+      const k=Math.min(+$('k').value||6,16);
+      const clusters=kmeans(pixels,k);
+      $('preview').innerHTML=`<img src="${url}" style="max-width:100%;border-radius:8px;border:1px solid var(--border)">`;
+      $('palette').innerHTML=clusters.map(([r,g,b,count])=>{
+        const hex='#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+        const pct=(count/pixels.length*100).toFixed(1);
+        return `<div style="display:flex;align-items:center;gap:12px;margin-top:6px">
+          <div style="width:40px;height:40px;border-radius:6px;background:${hex};border:1px solid var(--border)"></div>
+          <code>${hex}</code><span class="chip">rgb(${r},${g},${b})</span><span class="chip">${pct}%</span>
+          <button class="btn small ghost" onclick="navigator.clipboard.writeText('${hex}')">Copy</button>
+        </div>`;
+      }).join('')+`<div class="row" style="margin-top:12px"><button id="copy-css" class="btn small ghost">Copy as CSS vars</button></div>`;
+      const cssVars=`${clusters.map(([r,g,b],i)=>`--color-${i+1}: #${[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('')};`).join('\n')}`;
+      document.getElementById('copy-css').onclick=()=>navigator.clipboard.writeText(cssVars);
+    };
+
+    function kmeans(pixels,k){
+      const idx=[];for(let i=0;i<k;i++)idx.push(Math.floor(Math.random()*pixels.length));
+      let centroids=idx.map(i=>pixels[i].slice());
+      let assignments=new Array(pixels.length).fill(0);
+      for(let iter=0;iter<20;iter++){
+        let changed=false;
+        for(let i=0;i<pixels.length;i++){
+          let best=0,bestD=Infinity;
+          for(let j=0;j<k;j++){
+            const dx=pixels[i][0]-centroids[j][0],dy=pixels[i][1]-centroids[j][1],dz=pixels[i][2]-centroids[j][2];
+            const d=dx*dx+dy*dy+dz*dz;
+            if(d<bestD){bestD=d;best=j;}
+          }
+          if(assignments[i]!==best){assignments[i]=best;changed=true;}
+        }
+        if(!changed)break;
+        const sums=Array.from({length:k},()=>[0,0,0,0]);
+        for(let i=0;i<pixels.length;i++){
+          const c=assignments[i];
+          sums[c][0]+=pixels[i][0];sums[c][1]+=pixels[i][1];sums[c][2]+=pixels[i][2];sums[c][3]++;
+        }
+        centroids=sums.map(([r,g,b,n])=>n?[r/n,g/n,b/n]:[0,0,0]);
+      }
+      const counts=new Array(k).fill(0);
+      assignments.forEach(a=>counts[a]++);
+      return centroids.map((c,i)=>[Math.round(c[0]),Math.round(c[1]),Math.round(c[2]),counts[i]])
+        .filter(c=>c[3]>0)
+        .sort((a,b)=>b[3]-a[3]);
+    }
+  }
+};
